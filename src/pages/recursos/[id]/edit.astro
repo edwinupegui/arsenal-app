@@ -90,31 +90,25 @@ const resourceData = {
         <div class="mb-6">
             <a
                 href={`/recursos/${resourceId}`}
-                class="text-sm text-text-muted hover:text-text transition-colors flex items-center gap-1.5 mb-4"
+                class="inline-flex items-center gap-2 text-text-muted hover:text-text transition-colors duration-150 group"
             >
-                <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 19l-7-7 7-7"></path>
+                <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
-                Volver al recurso
+                <span class="text-sm">Volver al recurso</span>
             </a>
+        </div>
+
+        <div class="mb-8">
             <h1 class="text-2xl font-bold text-text tracking-tight">
                 Editar Recurso
             </h1>
-            <p class="text-text-muted text-sm mt-1">
+            <p class="text-text-muted mt-1">
                 Modifica los datos del recurso
             </p>
         </div>
 
-        <div class="bg-border border border-border rounded-xl p-6">
+        <div class="bg-surface border border-border rounded-xl p-6">
             <ResourceForm
                 action="edit"
                 initialData={resourceData}

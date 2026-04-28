@@ -23,7 +23,7 @@ const tagsValue = initialData.tags
     class="flex flex-col gap-5"
 >
   {/* Title */}
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-1.5">
     <label for="title" class="text-sm font-medium text-text">
       Título <span class="text-red-400">*</span>
     </label>
@@ -34,14 +34,14 @@ const tagsValue = initialData.tags
       required
       maxlength="200"
       value={initialData.title || ''}
-      class="w-full px-4 py-3 bg-bg border border-border rounded-lg text-text placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200"
+      class="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent transition-all duration-200"
       placeholder="Nombre del canal, herramienta o recurso"
     />
     {errors.title && <span class="text-xs text-red-400">{errors.title}</span>}
   </div>
 
   {/* URL */}
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-1.5">
     <label for="url" class="text-sm font-medium text-text">
       URL <span class="text-red-400">*</span>
     </label>
@@ -52,14 +52,14 @@ const tagsValue = initialData.tags
       required
       maxlength="500"
       value={initialData.url || ''}
-      class="w-full px-4 py-3 bg-bg border border-border rounded-lg text-text placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200"
+      class="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent transition-all duration-200"
       placeholder="https://..."
     />
     {errors.url && <span class="text-xs text-red-400">{errors.url}</span>}
   </div>
 
   {/* Description */}
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-1.5">
     <label for="description" class="text-sm font-medium text-text">
       Descripción
     </label>
@@ -68,14 +68,14 @@ const tagsValue = initialData.tags
       name="description"
       maxlength="1000"
       rows="3"
-      class="w-full px-4 py-3 bg-bg border border-border rounded-lg text-text placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200 resize-none"
+      class="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent transition-all duration-200 resize-none"
       placeholder="Breve descripción del contenido..."
     >{initialData.description || ''}</textarea>
     <span class="text-xs text-text-subtle">Máximo 1000 caracteres</span>
   </div>
 
   {/* Tags */}
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-1.5">
     <label for="tags" class="text-sm font-medium text-text">
       Tags
     </label>
@@ -84,16 +84,16 @@ const tagsValue = initialData.tags
       id="tags"
       name="tags"
       value={tagsValue.join(', ')}
-      class="w-full px-4 py-3 bg-bg border border-border rounded-lg text-text placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200"
-      placeholder="tutorial, advanced, patterns (separados por coma)"
+      class="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent transition-all duration-200"
+      placeholder="tutorial, advanced (separados por coma)"
     />
     <span class="text-xs text-text-subtle">Separados por coma</span>
   </div>
 
   {/* Row: Language + Type + Category */}
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="grid grid-cols-3 gap-3">
     {/* Language */}
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1.5">
       <label for="language" class="text-sm font-medium text-text">
         Idioma <span class="text-red-400">*</span>
       </label>
@@ -101,7 +101,7 @@ const tagsValue = initialData.tags
         id="language"
         name="language"
         required
-        class="w-full px-4 py-3 bg-bg border border-border rounded-lg text-text focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all duration-200"
+        class="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-text text-sm focus:outline-none focus:border-accent cursor-pointer transition-all duration-200"
       >
         {Object.entries(LANGUAGE_CONFIG).map(([value, config]) => (
           <option value={value} selected={initialData.language === value}>
@@ -112,7 +112,7 @@ const tagsValue = initialData.tags
     </div>
 
     {/* Type */}
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1.5">
       <label for="type" class="text-sm font-medium text-text">
         Tipo <span class="text-red-400">*</span>
       </label>
@@ -120,7 +120,7 @@ const tagsValue = initialData.tags
         id="type"
         name="type"
         required
-        class="w-full px-4 py-3 bg-bg border border-border rounded-lg text-text focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all duration-200"
+        class="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-text text-sm focus:outline-none focus:border-accent cursor-pointer transition-all duration-200"
       >
         {Object.entries(RESOURCE_TYPE_CONFIG).map(([value, config]) => (
           <option value={value} selected={initialData.type === value}>
@@ -131,7 +131,7 @@ const tagsValue = initialData.tags
     </div>
 
     {/* Category */}
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1.5">
       <label for="categoryId" class="text-sm font-medium text-text">
         Categoría <span class="text-red-400">*</span>
       </label>
@@ -139,7 +139,7 @@ const tagsValue = initialData.tags
         id="categoryId"
         name="categoryId"
         required
-        class="w-full px-4 py-3 bg-bg border border-border rounded-lg text-text focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all duration-200"
+        class="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-text text-sm focus:outline-none focus:border-accent cursor-pointer transition-all duration-200"
       >
         <option value="">Seleccionar...</option>
         {categories.map(cat => (
@@ -155,13 +155,13 @@ const tagsValue = initialData.tags
   <div class="flex gap-3 justify-end pt-4 border-t border-border">
     <a
       href="/recursos"
-      class="px-5 py-2.5 bg-surface-elevated hover:bg-overlay border border-border text-text rounded-lg transition-all duration-150 active:scale-[0.97] text-sm font-medium"
+      class="px-4 py-2 bg-surface-elevated hover:bg-overlay border border-border text-text text-sm rounded-lg transition-all duration-150 active:scale-[0.97]"
     >
       Cancelar
     </a>
     <button
       type="submit"
-      class="px-6 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-lg transition-all duration-150 active:scale-[0.97] text-sm font-semibold flex items-center gap-2"
+      class="px-5 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-all duration-150 active:scale-[0.97] flex items-center gap-2"
     >
       {action === 'create' ? (
         <>
