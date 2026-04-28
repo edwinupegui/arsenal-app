@@ -13,6 +13,8 @@ export const GET: APIRoute = async ({ url }) => {
       categoryId: filters.categoryId,
       language: filters.language,
       type: filters.type,
+      sort: filters.sort,
+      tags: filters.tags,
     });
 
     if (!isOk(result)) {

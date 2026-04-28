@@ -1,26 +1,12 @@
 import type { Resource, NewResource, Category } from '../db/schema';
+import type { SortOption, ResourceFilters as RepoResourceFilters } from '../repositories';
 
 // Re-export from schema for convenience
 export type { Resource, NewResource, Category };
 
-// Resource with parsed tags (for UI consumption)
-export interface ResourceWithTags extends Resource {
-  parsedTags: string[];
-}
-
-// Resource with category attached (for list views)
-export interface ResourceWithCategory {
-  resource: ResourceWithTags;
-  category: Category;
-}
-
-// Filter options for resource queries
-export interface ResourceFilters {
-  q?: string;
-  categoryId?: number;
-  language?: string;
-  type?: string;
-}
+// Re-export filter types from repository (single source of truth)
+export type { SortOption };
+export type ResourceFilters = RepoResourceFilters;
 
 // API response types
 export interface ApiResponse<T> {

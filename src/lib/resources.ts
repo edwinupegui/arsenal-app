@@ -30,3 +30,4 @@ export const permanentDeleteResource = resourceService.permanentDeleteResource.b
 export const searchResources = resourceService.searchResources.bind(resourceService);
 export const listCategories = resourceService.listCategories.bind(resourceService);
 export const getCategoryById = resourceService.getCategoryById.bind(resourceService);
+export const getAllTags = resourceService.getAllTags.bind(resourceService);

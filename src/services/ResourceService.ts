@@ -50,6 +50,10 @@ export class ResourceService {
   getCategoryById(id: number): Result<Category | null, AppError> {
     return categoryRepository.findById(id);
   }
+
+  getAllTags(): Result<{tag: string; count: number}[], AppError> {
+    return resourceRepository.getAllTags();
+  }
 }
 
 export const resourceService = new ResourceService();

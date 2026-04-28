@@ -3,7 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 import ResourceCard from "../../components/ResourceCard.astro";
 import SearchInput from "../../components/SearchInput.astro";
 import FilterBar from "../../components/FilterBar.astro";
-import { listResources, listCategories, parseTags } from "../../lib/resources";
+import { listResources, listCategories, getAllTags, parseTags, type SortOption } from "../../lib/resources";
 
 const { searchParams } = Astro.url;
 const q = searchParams.get("q") || "";
@@ -12,12 +12,20 @@ const categoryId = searchParams.get("categoryId")
     : undefined;
 const language = searchParams.get("language") || undefined;
 const type = searchParams.get("type") || undefined;
+const sort = (searchParams.get("sort") || 'alpha') as SortOption;
+const tags = searchParams.getAll("tags").filter(t => t.length > 0) || undefined;
+
+// Get all available tags for the filter UI
+const tagsResult = getAllTags();
+const allTags = tagsResult.ok ? tagsResult.value : [];
 
 const resourcesResult = listResources({
     q: q || undefined,
     categoryId,
     language,
     type,
+    sort,
+    tags,
 });
 const categoriesResult = listCategories();
 
@@ -57,7 +65,7 @@ const resourcesWithCategory = resources.map((r) => {
             </div>
             <a
                 href="/recursos/new"
-                class="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-semibold rounded-xl transition-all duration-150 active:scale-[0.97] flex items-center gap-2 w-fit shadow-lg shadow-accent/20 hover:shadow-xl hover:shadow-accent/30"
+                class="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-colors duration-150 active:scale-[0.97] flex items-center gap-2 w-fit"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -71,7 +79,8 @@ const resourcesWithCategory = resources.map((r) => {
             <SearchInput value={q} />
             <FilterBar
                 categories={categories}
-                currentFilters={{ categoryId, language, type }}
+                currentFilters={{ categoryId, language, type, tags, sort }}
+                allTags={allTags}
             />
         </div>
 
@@ -113,7 +122,7 @@ const resourcesWithCategory = resources.map((r) => {
                     ) : (
                         <a
                             href="/recursos/new"
-                            class="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-all duration-150 active:scale-[0.97] flex items-center gap-2 shadow-sm"
+                            class="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-colors duration-150 active:scale-[0.97] flex items-center gap-2"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>

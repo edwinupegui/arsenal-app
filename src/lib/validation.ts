@@ -24,11 +24,18 @@ export const updateResourceSchema = z.object({
   categoryId: z.number().int().positive().optional(),
 });
 
+export const sortEnum = z.enum(['alpha', 'newest', 'oldest', 'relevance']);
+
 export const filterSchema = z.object({
   q: z.string().optional(),
   categoryId: z.coerce.number().int().positive().optional(),
   language: languageEnum.optional(),
   type: typeEnum.optional(),
+  sort: sortEnum.optional().default('alpha'),
+  tags: z.string().optional().transform(val => {
+    if (!val) return [];
+    return val.split(',').map(t => t.trim()).filter(t => t.length > 0);
+  }),
 });
 
 export type CreateResourceInput = z.infer<typeof createResourceSchema>;

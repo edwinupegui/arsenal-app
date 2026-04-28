@@ -1,14 +1,18 @@
-import { eq, and, like, isNull, isNotNull, or, asc } from 'drizzle-orm';
+import { eq, and, like, isNull, isNotNull, or, asc, desc, sql } from 'drizzle-orm';
 import { db } from '../db/index';
 import { resources, categories, type Resource, type NewResource, type Category } from '../db/schema';
 import { ok, err, notFoundError, duplicateError, databaseError } from '../lib/result';
 import type { Result, AppError } from '../lib/result';
+
+export type SortOption = 'alpha' | 'newest' | 'oldest' | 'relevance';
 
 export type ResourceFilters = {
   q?: string;
   categoryId?: number;
   language?: string;
   type?: string;
+  tags?: string[];
+  sort?: SortOption;
 };
 
 export class ResourceRepository {
@@ -16,14 +20,24 @@ export class ResourceRepository {
     try {
       const conditions = [isNull(resources.deletedAt)];
 
-      if (filters?.q) {
+      // Text search: use LIKE for now (simpler, works reliably)
+      if (filters?.q && filters.q.trim()) {
+        const searchTerm = `%${filters.q}%`;
         conditions.push(
           or(
-            like(resources.title, `%${filters.q}%`),
-            like(resources.description, `%${filters.q}%`)
+            like(resources.title, searchTerm),
+            like(resources.description, searchTerm)
           )!
         );
       }
+
+      // Tag filtering: resources must contain ALL specified tags (AND logic)
+      if (filters?.tags && filters.tags.length > 0) {
+        for (const tag of filters.tags) {
+          conditions.push(like(resources.tags, `%"${tag}"%`));
+        }
+      }
+
       if (filters?.categoryId) {
         conditions.push(eq(resources.categoryId, filters.categoryId));
       }
@@ -34,17 +48,57 @@ export class ResourceRepository {
         conditions.push(eq(resources.type, filters.type));
       }
 
-      const result = db
+      // Build query with conditions
+      let query = db
         .select()
         .from(resources)
-        .where(and(...conditions))
-        .orderBy(asc(resources.title))
-        .all() as Resource[];
+        .where(and(...conditions));
 
+      // Apply sorting
+      const sort = filters?.sort ?? 'alpha';
+      if (sort === 'newest') {
+        query = query.orderBy(desc(resources.createdAt));
+      } else if (sort === 'oldest') {
+        query = query.orderBy(asc(resources.createdAt));
+      } else if (sort === 'relevance' && filters?.q) {
+        query = query.orderBy(asc(resources.title));
+      } else {
+        // Default: alphabetical
+        query = query.orderBy(asc(resources.title));
+      }
+
+      const result = query.all() as Resource[];
       return ok(result);
     } catch (e) {
       return err(databaseError(`Failed to fetch resources: ${e}`));
     }
+  }
+
+  private isFTSAvailable(): boolean {
+    try {
+      db.select().from(sql`resources_fts LIMIT 1`).all();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private buildFTSQuery(query: string): string {
+    // Escape special FTS5 characters
+    const escaped = query
+      .replace(/["*]/g, '')
+      .trim();
+
+    // Split into words and create OR query for partial matching
+    const words = escaped.split(/\s+/).filter(w => w.length > 0);
+    if (words.length === 0) {
+      return '""';
+    }
+
+    // Use OR between words for partial matching
+    // Add * for prefix matching on each word
+    const ftsTerms = words.map(w => `"${w}"*`);
+    return ftsTerms.join(' OR ');
   }
 
   findDeleted(): Result<Resource[], AppError> {
@@ -217,6 +271,34 @@ export class ResourceRepository {
       return ok(true);
     } catch (e) {
       return err(databaseError(`Failed to permanently delete resource ${id}: ${e}`));
+    }
+  }
+
+  getAllTags(): Result<{tag: string; count: number}[], AppError> {
+    try {
+      const result = db
+        .select({ tags: resources.tags })
+        .from(resources)
+        .where(isNull(resources.deletedAt))
+        .all();
+
+      // Flatten and count tag occurrences
+      const tagCounts = new Map<string, number>();
+      for (const row of result) {
+        const tags: string[] = row.tags ?? [];
+        for (const tag of tags) {
+          tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+        }
+      }
+
+      // Convert to sorted array (by count descending)
+      const sorted = Array.from(tagCounts.entries())
+        .map(([tag, count]) => ({ tag, count }))
+        .sort((a, b) => b.count - a.count);
+
+      return ok(sorted);
+    } catch (e) {
+      return err(databaseError(`Failed to fetch tags: ${e}`));
     }
   }
 
