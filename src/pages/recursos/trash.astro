@@ -1,0 +1,211 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import CategoryBadge from "../../components/CategoryBadge.astro";
+import {
+    listDeletedResources,
+    listCategories,
+    parseTags,
+} from "../../lib/resources";
+import { RESOURCE_TYPE_CONFIG } from "../../lib/constants";
+import type { Resource, Category } from "../../db/schema";
+
+const deletedResult = listDeletedResources();
+const categoriesResult = listCategories();
+
+// Build categories map once to avoid N+1
+const categoriesMap = new Map<number, Category>();
+let fallbackCategory: Category = {
+    id: 0,
+    name: "Sin categoría",
+    icon: "bookmark",
+};
+
+if (categoriesResult.ok && categoriesResult.value) {
+    for (const cat of categoriesResult.value) {
+        categoriesMap.set(cat.id, cat);
+    }
+    fallbackCategory = categoriesMap.get(0) ?? fallbackCategory;
+}
+
+const resourcesWithCategory: Array<{
+    resource: Resource;
+    category: Category;
+}> =
+    deletedResult.ok && deletedResult.value
+        ? deletedResult.value.map((r) => ({
+              resource: r,
+              category: categoriesMap.get(r.categoryId) ?? fallbackCategory,
+          }))
+        : [];
+---
+
+<Layout
+    title="Papelera — Arsenal"
+    description="Recursos eliminados temporalmente"
+>
+    <div class="flex flex-col gap-8">
+        {/* Header */}
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-text tracking-tight">
+                    Papelera
+                </h1>
+                <p class="text-text-muted text-sm mt-1">
+                    {
+                        resourcesWithCategory.length === 0
+                            ? "No hay recursos eliminados"
+                            : `${resourcesWithCategory.length} recurso${resourcesWithCategory.length > 1 ? "s" : ""} en papelera`
+                    }
+                </p>
+            </div>
+            <a
+                href="/recursos"
+                class="px-4 py-2 bg-surface-hover hover:bg-border border border-border text-text text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+            >
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                </svg>
+                Ver recursos
+            </a>
+        </div>
+
+        {/* Empty state */}
+        {
+            resourcesWithCategory.length === 0 ? (
+                <div class="flex flex-col items-center justify-center py-24 text-center animate-fade-up">
+                    <!-- Trash icon -->
+                    <div class="w-20 h-20 rounded-2xl bg-surface border border-border flex items-center justify-center mb-6">
+                        <svg class="w-10 h-10 text-text-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </div>
+
+                    <h3 class="text-text font-semibold text-xl mb-3">
+                        Papelera vacía
+                    </h3>
+                    <p class="text-text-muted text-base max-w-md leading-relaxed">
+                        Los recursos que elimines aparecerán aquí.<br class="hidden sm:block" />
+                        Puedes restaurarlos o eliminarlos permanentemente.
+                    </p>
+                </div>
+            ) : (
+                <div class="space-y-3">
+                    {resourcesWithCategory.map(({ resource, category }) => {
+                        const tags = parseTags(resource.tags);
+                        const deletedAt = resource.deletedAt
+                            ? new Date(resource.deletedAt).toLocaleDateString(
+                                  "es-ES",
+                                  {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                  },
+                              )
+                            : "Fecha desconocida";
+
+                        return (
+                            <div class="bg-surface border border-border rounded-xl p-4 flex items-center justify-between gap-4">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h3 class="font-medium text-text truncate">
+                                            {resource.title}
+                                        </h3>
+                                        <CategoryBadge
+                                            name={category.name}
+                                            icon={category.icon}
+                                        />
+                                    </div>
+                                    <div class="flex items-center gap-3 text-xs text-muted">
+                                        <span class="truncate max-w-75">
+                                            {resource.url.replace(
+                                                /^https?:\/\//,
+                                                "",
+                                            )}
+                                        </span>
+                                        <span class="shrink-0">
+                                            Eliminado: {deletedAt}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2 shrink-0">
+                                    {/* Restore button */}
+                                    <form
+                                        method="POST"
+                                        action={`/api/resources/${resource.id}/restore`}
+                                    >
+                                        <button
+                                            type="submit"
+                                            class="px-3 py-1.5 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 border border-emerald-800/50"
+                                            title="Restaurar recurso"
+                                        >
+                                            <svg
+                                                class="w-3.5 h-3.5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                                />
+                                            </svg>
+                                            Restaurar
+                                        </button>
+                                    </form>
+
+                                    {/* Permanent delete button */}
+                                    <form
+                                        method="POST"
+                                        action={`/api/resources/${resource.id}/permanent`}
+                                    >
+                                        <button
+                                            type="submit"
+                                            class="px-3 py-1.5 bg-red-900/30 hover:bg-red-900/50 text-red-400 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 border border-red-800/50"
+                                            title="Eliminar permanentemente"
+                                            onclick="return confirm('¿Eliminar permanentemente? Esta acción no se puede deshacer.')"
+                                        >
+                                            <svg
+                                                class="w-3.5 h-3.5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                />
+                                            </svg>
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        );
+                    })}
+
+                    {/* Empty trash info */}
+                    <div class="pt-4 border-t border-border mt-6 flex justify-between items-center">
+                        <p class="text-xs text-text-muted">
+                            Los recursos en papelera se eliminan automáticamente
+                            después de 30 días.
+                        </p>
+                    </div>
+                </div>
+            )
+        }
+    </div>
+</Layout>

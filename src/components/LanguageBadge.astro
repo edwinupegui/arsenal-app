@@ -1,0 +1,35 @@
+---
+import { LANGUAGE_CONFIG } from '../lib/constants';
+
+interface Props {
+    language: string;
+    size?: 'sm' | 'md';
+}
+
+const { language, size = 'sm' } = Astro.props;
+const config = LANGUAGE_CONFIG[language as keyof typeof LANGUAGE_CONFIG] ?? LANGUAGE_CONFIG.EN;
+
+const sizeClasses = {
+    sm: 'px-2 py-0.5 text-xs',
+    md: 'px-2.5 py-1 text-sm',
+};
+---
+
+<span
+    class={`inline-flex items-center gap-1.5 font-medium rounded border ${sizeClasses[size]}`}
+    style={`
+        background-color: oklch(${config.bgColor} / 0.15);
+        border-color: oklch(${config.bgColor} / 0.4);
+        color: oklch(${config.color});
+    `}
+>
+    <!-- Language icon -->
+    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        {language === 'ES' ? (
+            <path d="M21 3H3v7l3 3 3-3 3 3 3-3 3 3V3zM3 14h18M3 18h18" />
+        ) : (
+            <path d="M12 3v18M3 9h18M3 15h18" />
+        )}
+    </svg>
+    {config.label}
+</span>

@@ -1,0 +1,503 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ARSENAL DESIGN SYSTEM — Global Styles
+   Cinematic dark palette with purple tint, electric violet accent
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TAILwind THEME — Design Tokens
+   ───────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Fonts */
+  --font-sans: "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SURFACE — Dark cinematic with purple undertone
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --color-bg:            oklch(0.12 0.02 280);
+  --color-surface:       oklch(0.14 0.02 280);
+  --color-surface-hover: oklch(0.17 0.02 280);
+  --color-surface-elevated: oklch(0.17 0.02 280);
+  --color-overlay:       oklch(0.10 0.02 280);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     BORDERS — Purple-tinted
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --color-border:        oklch(0.20 0.02 280);
+  --color-border-subtle: oklch(0.17 0.02 280);
+  --color-border-bright:  oklch(0.28 0.02 280);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     TEXT — Cool-tinted whites
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --color-text:          oklch(0.92 0.01 280);
+  --color-text-muted:    oklch(0.55 0.02 280);
+  --color-text-subtle:   oklch(0.40 0.02 280);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     ACCENT — Electric violet
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --color-accent:        oklch(0.65 0.18 290);
+  --color-accent-hover:  oklch(0.70 0.20 290);
+  --color-accent-muted:  oklch(0.65 0.12 290 / 0.15);
+  --color-accent-glow:   oklch(0.65 0.18 290 / 0.25);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --color-success:       oklch(0.70 0.18 145);
+  --color-success-bg:    oklch(0.70 0.18 145 / 0.12);
+  --color-warning:       oklch(0.75 0.18 85);
+  --color-warning-bg:    oklch(0.75 0.18 85 / 0.12);
+  --color-danger:        oklch(0.65 0.22 25);
+  --color-danger-bg:     oklch(0.65 0.22 25 / 0.12);
+  --color-info:          oklch(0.65 0.18 200);
+  --color-info-bg:       oklch(0.65 0.18 200 / 0.12);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     RESOURCE TYPE COLORS — Distinctive per type
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --color-type-video:    oklch(0.62 0.22 25);
+  --color-type-article:  oklch(0.65 0.18 200);
+  --color-type-tool:     oklch(0.68 0.18 155);
+  --color-type-repo:     oklch(0.65 0.18 290);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     LANGUAGE COLORS
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --color-lang-es:       oklch(0.68 0.16 145);
+  --color-lang-en:       oklch(0.65 0.18 220);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SPACING — Base 4px scale
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --spacing-xs:  0.25rem;   /* 4px  */
+  --spacing-sm:  0.5rem;    /* 8px  */
+  --spacing-md:  0.75rem;   /* 12px */
+  --spacing-lg:  1rem;      /* 16px */
+  --spacing-xl:  1.25rem;   /* 20px */
+  --spacing-2xl:  1.5rem;    /* 24px */
+  --spacing-3xl: 2rem;      /* 32px */
+  --spacing-4xl: 2.5rem;    /* 40px */
+  --spacing-5xl: 3rem;      /* 48px */
+  --spacing-6xl: 4rem;     /* 64px */
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     BORDER RADIUS
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SHADOWS — Purple-tinted (no pure black)
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --shadow-sm:   0 1px 2px oklch(0 0 0 / 0.3), 0 1px 3px oklch(0 0 0 / 0.2);
+  --shadow-md:    0 4px 6px oklch(0 0 0 / 0.25), 0 2px 4px oklch(0 0 0 / 0.2);
+  --shadow-lg:    0 10px 15px oklch(0 0 0 / 0.25), 0 4px 6px oklch(0 0 0 / 0.2);
+  --shadow-glow:  0 0 20px oklch(0.65 0.18 290 / 0.3);
+  --shadow-glow-sm: 0 0 10px oklch(0.65 0.18 290 / 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — For JS access and complex animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Easing curves */
+  --ease-out:   cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Durations */
+  --duration-fast:   100ms;
+  --duration-normal: 200ms;
+  --duration-slow:   300ms;
+  --duration-slower: 400ms;
+
+  /* Blur */
+  --blur-sm:  4px;
+  --blur-md:  8px;
+  --blur-lg:  12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE RESETS
+   ═══════════════════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SELECTION — Branded purple tint
+   ═══════════════════════════════════════════════════════════════════════════ */
+::selection {
+  background-color: oklch(0.65 0.18 290 / 0.3);
+  color: var(--color-text);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCROLLBAR — Subtle, matching theme
+   ═══════════════════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-bright);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FOCUS VISIBLE — Accent ring, offset
+   ═══════════════════════════════════════════════════════════════════════════ */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Line clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Fade + slide up — fortoast, cards entering */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade + slide from left — for breadcrumbs, back navigation */
+@keyframes fade-left {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scale + fade — for modals, dialogs */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Subtle pulse — for loading indicators */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 oklch(0.65 0.18 290 / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px oklch(0.65 0.18 290 / 0);
+  }
+}
+
+/* Spin — for loading spinners */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATION UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════════════════ */
+.animate-fade-up {
+  animation: fade-up var(--duration-slower) var(--ease-out) forwards;
+}
+
+.animate-fade-left {
+  animation: fade-left var(--duration-slower) var(--ease-out) forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in var(--duration-normal) var(--ease-out) forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s var(--ease-in-out) infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STAGGER ANIMATIONS — For lists with delayed entrance
+   ═══════════════════════════════════════════════════════════════════════════ */
+.stagger-enter > * {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: fade-up var(--duration-slower) var(--ease-out) forwards;
+}
+
+.stagger-enter > *:nth-child(1)  { animation-delay: 0ms; }
+.stagger-enter > *:nth-child(2)  { animation-delay: 60ms; }
+.stagger-enter > *:nth-child(3)  { animation-delay: 120ms; }
+.stagger-enter > *:nth-child(4)  { animation-delay: 180ms; }
+.stagger-enter > *:nth-child(5)  { animation-delay: 240ms; }
+.stagger-enter > *:nth-child(6)  { animation-delay: 300ms; }
+.stagger-enter > *:nth-child(7)  { animation-delay: 360ms; }
+.stagger-enter > *:nth-child(8)  { animation-delay: 420ms; }
+.stagger-enter > *:nth-child(9)  { animation-delay: 480ms; }
+.stagger-enter > *:nth-child(10) { animation-delay: 540ms; }
+.stagger-enter > *:nth-child(n+11) { animation-delay: 600ms; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DIALOG / MODAL BACKDROP
+   ═══════════════════════════════════════════════════════════════════════════ */
+dialog::backdrop {
+  background: oklch(0 0 0 / 0.7);
+  backdrop-filter: blur(var(--blur-md));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PREFERS REDUCED MOTION — Respect user preference
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRINT STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media print {
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  a {
+    color: black;
+    text-decoration: underline;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPONENT BASE STYLES — Reusable patterns
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Card base */
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  transition:
+    border-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
+}
+
+/* Button press feedback — CRITICAL for responsiveness */
+.btn-press:active {
+  transform: scale(0.97);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* Input base */
+.input-base {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition:
+    border-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.input-base::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.input-base:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+/* Badge base */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+}
+
+/* Type-specific card glow on hover */
+.card[data-type="video"]:hover {
+  border-color: var(--color-type-video);
+  box-shadow: 0 0 20px oklch(0.62 0.22 25 / 0.2);
+}
+
+.card[data-type="article"]:hover {
+  border-color: var(--color-type-article);
+  box-shadow: 0 0 20px oklch(0.65 0.18 200 / 0.2);
+}
+
+.card[data-type="tool"]:hover {
+  border-color: var(--color-type-tool);
+  box-shadow: 0 0 20px oklch(0.68 0.18 155 / 0.2);
+}
+
+.card[data-type="repo"]:hover {
+  border-color: var(--color-type-repo);
+  box-shadow: 0 0 20px oklch(0.65 0.18 290 / 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VIEW TRANSITIONS — Astro View Transitions support
+   ═══════════════════════════════════════════════════════════════════════════ */
+@view-transition {
+  navigation: auto;
+}
+
+/* Page transition */
+::view-transition-old(root) {
+  animation: 200ms var(--ease-out) both fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 300ms var(--ease-out) both slide-from-bottom;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-from-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Named transitions for persistent elements (header) */
+::view-transition-old(header),
+::view-transition-new(header) {
+  animation: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LINK STYLES — Consistent navigation links
+   ═══════════════════════════════════════════════════════════════════════════ */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--duration-normal) var(--ease-out);
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HOVER-ONLY EFFECTS — Only on capable devices
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+}

@@ -1,0 +1,61 @@
+# === Build & Generated ===
+dist/
+.astro/
+
+# === Dependencies ===
+node_modules/
+
+# === Environment & Secrets ===
+.env
+.env.production
+.env.local
+.env.*.local
+
+# === Logs ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+
+# === Lock Files ===
+bun.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# === Database (SQLite local) ===
+*.db
+*.db.backup
+*.sqlite
+*.sqlite3
+
+# === Testing ===
+coverage/
+
+# === Skills & Agents ===
+# Las skills en .agents/skills/ se versionan (son know-how del proyecto)
+# Ignorar solo archivos temporales y lock files
+skills-lock.json
+.agents/skills-lock.json
+.agents/.cache/
+.agents/.tmp/
+
+# === Artifact Stores ===
+openspec/
+
+# === Atl (local memory/store) ===
+.atl/
+
+# === macOS ===
+.DS_Store
+
+# === IDEs ===
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# === Misc ===
+*.log
+*.tmp

@@ -1,0 +1,125 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import ResourceForm from "../../../components/ResourceForm.astro";
+import {
+    getResourceById,
+    listCategories,
+    parseTags,
+} from "../../../lib/resources";
+
+const { id } = Astro.params;
+if (!id || isNaN(parseInt(id))) {
+    return Astro.redirect("/recursos");
+}
+const resourceId = parseInt(id);
+
+const resourceResult = getResourceById(resourceId);
+
+if (
+    !resourceResult.ok ||
+    !resourceResult.value ||
+    resourceResult.value.deletedAt
+) {
+    return Astro.redirect("/recursos?error=not-found");
+}
+
+const resource = resourceResult.value;
+
+const categoriesResult = listCategories();
+const categories = categoriesResult.ok ? categoriesResult.value : [];
+
+if (Astro.request.method === "POST") {
+    try {
+        const formData = await Astro.request.formData();
+
+        const title = formData.get("title") as string;
+        const url = formData.get("url") as string;
+        const description = formData.get("description") as string;
+        const tagsRaw = formData.get("tags") as string;
+        const language = formData.get("language") as string;
+        const type = formData.get("type") as string;
+        const categoryId = parseInt(formData.get("categoryId") as string);
+
+        const tags = tagsRaw
+            ? tagsRaw
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter(Boolean)
+            : [];
+
+        const response = await fetch(
+            `${Astro.url.origin}/api/resources/${resourceId}`,
+            {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title,
+                    url,
+                    description,
+                    tags,
+                    language,
+                    type,
+                    categoryId,
+                }),
+            },
+        );
+
+        if (response.ok) {
+            return Astro.redirect(`/recursos/${resourceId}?updated=true`);
+        } else {
+            const error = await response.json();
+            return Astro.redirect(
+                `/recursos/${resourceId}/edit?error=${encodeURIComponent(error.error || "Error al actualizar")}`,
+            );
+        }
+    } catch (e) {
+        return Astro.redirect(
+            `/recursos/${resourceId}/edit?error=Error+inesperado`,
+        );
+    }
+}
+
+const resourceData = {
+    ...resource,
+    tags: parseTags(resource.tags),
+};
+---
+
+<Layout title={`Editar: ${resource.title} — Arsenal`}>
+    <div class="max-w-2xl mx-auto">
+        <div class="mb-6">
+            <a
+                href={`/recursos/${resourceId}`}
+                class="text-sm text-text-muted hover:text-text transition-colors flex items-center gap-1.5 mb-4"
+            >
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Volver al recurso
+            </a>
+            <h1 class="text-2xl font-bold text-text tracking-tight">
+                Editar Recurso
+            </h1>
+            <p class="text-text-muted text-sm mt-1">
+                Modifica los datos del recurso
+            </p>
+        </div>
+
+        <div class="bg-border border border-border rounded-xl p-6">
+            <ResourceForm
+                action="edit"
+                initialData={resourceData}
+                categories={categories}
+            />
+        </div>
+    </div>
+</Layout>

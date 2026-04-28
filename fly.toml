@@ -1,0 +1,31 @@
+# fly.toml para arsenal-app
+# Generated for Fly.io deployment with SQLite persistence
+
+app = "arsenal-app"
+primary_region = "iad"
+
+[build]
+
+[deploy]
+  release_command = "npm run db:migrate"
+
+[run]
+  cmd = "node ./dist/server/entry.mjs"
+  concurrency = 25
+  memory_mb = 256
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[env]
+  PORT = "8080"
+
+# Volumen para persistir la base de datos SQLite
+[mounts]
+  source = "sqlite_data"
+  destination = "/app/data"
+
+[processes]
+  app = "node ./dist/server/entry.mjs"

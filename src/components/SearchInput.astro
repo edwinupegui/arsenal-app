@@ -1,0 +1,90 @@
+---
+interface Props {
+    value?: string;
+    placeholder?: string;
+}
+
+const { value = "", placeholder = "Buscar recursos..." } = Astro.props;
+---
+
+<div class="relative group">
+    <!-- Search icon -->
+    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+        <svg
+            class="w-4 h-4 text-text-subtle group-focus-within:text-accent transition-colors duration-150"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            ></path>
+        </svg>
+    </div>
+
+    <input
+        type="search"
+        name="q"
+        id="search"
+        value={value}
+        placeholder={placeholder}
+        class="w-full pl-10 pr-10 py-3 bg-surface border border-border rounded-xl text-text placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200 text-sm group-hover:border-border-bright"
+    />
+
+    <!-- Clear button (when has value) -->
+    {
+        value && (
+            <button
+                type="button"
+                onclick="this.parentElement.querySelector('input').value=''; this.parentElement.querySelector('input').form?.submit()"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-text-subtle hover:text-text transition-colors duration-150"
+                aria-label="Limpiar búsqueda"
+            >
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                    />
+                </svg>
+            </button>
+        )
+    }
+</div>
+
+<script>
+    // Debounce form submission
+    const searchInput = document.querySelector(
+        'input[name="q"]',
+    ) as HTMLInputElement;
+    let debounceTimer: ReturnType<typeof setTimeout>;
+
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                searchInput.form?.requestSubmit();
+            }, 300);
+        });
+    }
+</script>
+
+<style>
+    /* Custom placeholder for search */
+    input[type="search"]::-webkit-search-cancel-button {
+        -webkit-appearance: none;
+    }
+
+    input[type="search"]::placeholder {
+        color: oklch(0.40 0.02 280);
+    }
+</style>

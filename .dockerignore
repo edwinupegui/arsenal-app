@@ -1,0 +1,40 @@
+# Deps
+node_modules
+
+# Development
+.git
+.gitignore
+.env*
+.vscode
+.idea
+*.log
+
+# Testing
+coverage
+*.test.ts
+*.spec.ts
+src/tests
+
+# Docs
+*.md
+!README.md
+
+# Agents/Audit
+.agents
+.skippai
+
+# Build artifacts que no necesitamos
+dist/client
+
+# Database (se crea en el volumen)
+*.db
+*.db-journal
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+tmp
+temp
+*.tmp

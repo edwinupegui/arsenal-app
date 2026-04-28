@@ -1,0 +1,88 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ResourceForm from "../../components/ResourceForm.astro";
+import { listCategories } from "../../lib/resources";
+
+const categoriesResult = listCategories();
+const categories = categoriesResult.ok ? categoriesResult.value : [];
+
+if (Astro.request.method === "POST") {
+    try {
+        const formData = await Astro.request.formData();
+
+        const title = formData.get("title") as string;
+        const url = formData.get("url") as string;
+        const description = formData.get("description") as string;
+        const tagsRaw = formData.get("tags") as string;
+        const language = formData.get("language") as string;
+        const type = formData.get("type") as string;
+        const categoryId = parseInt(formData.get("categoryId") as string);
+
+        const tags = tagsRaw
+            ? tagsRaw
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter(Boolean)
+            : [];
+
+        const response = await fetch(`${Astro.url.origin}/api/resources`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title,
+                url,
+                description,
+                tags,
+                language,
+                type,
+                categoryId,
+            }),
+        });
+
+        if (response.ok) {
+            return Astro.redirect("/recursos?created=true");
+        } else {
+            const error = await response.json();
+            return Astro.redirect(
+                `/recursos/new?error=${encodeURIComponent(error.error || "Error al crear")}`,
+            );
+        }
+    } catch (e) {
+        return Astro.redirect("/recursos/new?error=Error+inesperado");
+    }
+}
+---
+
+<Layout title="Nuevo Recurso — Arsenal">
+    <div class="w-full">
+        <!-- Back link -->
+        <nav class="mb-6">
+            <a
+                href="/recursos"
+                class="inline-flex items-center gap-2 text-text-muted hover:text-text transition-colors duration-150 group"
+            >
+                <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                <span class="text-sm">Volver a recursos</span>
+            </a>
+        </nav>
+
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-text tracking-tight">
+                Nuevo Recurso
+            </h1>
+            <p class="text-text-muted mt-2">
+                Agrega un nuevo recurso técnico a la colección
+            </p>
+        </div>
+
+        <!-- Form card - full width -->
+        <div class="bg-surface border border-border rounded-2xl p-6 sm:p-10">
+            <div class="max-w-2xl">
+                <ResourceForm action="create" categories={categories} />
+            </div>
+        </div>
+    </div>
+</Layout>

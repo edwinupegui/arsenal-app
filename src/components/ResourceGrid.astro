@@ -1,0 +1,29 @@
+---
+import ResourceCard from './ResourceCard.astro';
+import type { Resource, Category } from '../db/schema';
+import { parseTags } from '../lib/resources';
+
+interface Props {
+  resources: Resource[];
+  categories: Category[];
+}
+
+const { resources, categories } = Astro.props;
+
+const resourcesWithCategory = resources.map(r => {
+  const category = categories.find(c => c.id === r.categoryId);
+  return {
+    resource: {
+      ...r,
+      tags: parseTags(r.tags),
+    },
+    category: category || { id: 0, name: 'Uncategorized', icon: 'bookmark' },
+  };
+});
+---
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {resourcesWithCategory.map(({ resource, category }) => (
+    <ResourceCard {resource} {category} />
+  ))}
+</div>

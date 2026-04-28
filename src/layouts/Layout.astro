@@ -1,0 +1,147 @@
+---
+import { ClientRouter } from 'astro:transitions';
+
+interface Props {
+    title?: string;
+    description?: string;
+    canonical?: string;
+    ogType?: string;
+}
+
+const {
+    title = "Arsenal — Curated Technical Resources",
+    description = "Your curated technical resources manager for software development, AI, architecture, and gamedev.",
+    canonical = Astro.url.href,
+    ogType = "website",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content={description} />
+
+        <!-- Canonical URL -->
+        <link rel="canonical" href={canonical} />
+
+        <!-- Open Graph -->
+        <meta property="og:type" content={ogType} />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:site_name" content="Arsenal" />
+        <meta property="og:locale" content="es_ES" />
+
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+
+        <!-- Favicon -->
+        <link rel="icon" type="image/svg+xml" href="/arsenal-logo.svg" />
+
+        <!-- Google Fonts — Geist (fallback to system) -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+        <title>{title}</title>
+
+        <!-- View Transitions for smooth page navigation -->
+        <ClientRouter />
+    </head>
+    <body class="bg-bg text-text min-h-screen antialiased">
+        <!-- Header — persists across page transitions -->
+        <header
+            class="sticky top-0 z-50 border-b border-border bg-bg/80 backdrop-blur-xl"
+            transition:persist="header"
+        >
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <!-- Logo + Brand -->
+                <a
+                    href="/recursos"
+                    class="flex items-center gap-3 group transition-opacity hover:opacity-80"
+                >
+                    <img
+                        src="/arsenal-logo.svg"
+                        alt="Arsenal"
+                        class="w-9 h-9 transition-transform duration-200 group-hover:scale-105"
+                    />
+                    <span class="font-semibold text-lg tracking-tight text-text">
+                        Arsenal
+                    </span>
+                </a>
+
+                <!-- Navigation links -->
+                <div class="flex items-center gap-1">
+                    <a
+                        href="/recursos"
+                        class="px-4 py-2 text-sm text-text-muted hover:text-text rounded-lg hover:bg-surface transition-all duration-150 flex items-center gap-2 group"
+                    >
+                        <svg class="w-4 h-4 transition-transform duration-150 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        Recursos
+                    </a>
+                    <a
+                        href="/recursos/trash"
+                        class="px-4 py-2 text-sm text-text-muted hover:text-text rounded-lg hover:bg-surface transition-all duration-150 flex items-center gap-2 group"
+                    >
+                        <svg class="w-4 h-4 transition-transform duration-150 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Papelera
+                    </a>
+
+                    <!-- Divider -->
+                    <div class="w-px h-6 bg-border mx-2"></div>
+
+                    <!-- New Resource CTA -->
+                    <a
+                        href="/recursos/new"
+                        class="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-semibold rounded-xl transition-all duration-150 active:scale-[0.97] flex items-center gap-2 shadow-lg shadow-accent/20 hover:shadow-xl hover:shadow-accent/30"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Nuevo
+                    </a>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main content -->
+        <main
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+            transition:animate="fade"
+        >
+            <slot />
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-border mt-16 py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+                <p class="text-text-subtle text-sm">
+                    Arsenal — Recursos Técnicos Curados
+                </p>
+                <div class="flex items-center gap-4 text-text-subtle text-xs">
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+                        Sistema activo
+                    </span>
+                </div>
+            </div>
+        </footer>
+    </body>
+</html>
+
+<style is:global>
+    @import "../styles/global.css";
+
+    /* Smooth scroll offset for anchors */
+    [id] {
+        scroll-margin-top: 5rem;
+    }
+</style>

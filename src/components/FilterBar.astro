@@ -1,0 +1,120 @@
+---
+import type { Category } from '../db/schema';
+import { LANGUAGE_CONFIG, RESOURCE_TYPE_CONFIG } from '../lib/constants';
+
+interface Props {
+  categories: Category[];
+  currentFilters: {
+    categoryId?: number;
+    language?: string;
+    type?: string;
+  };
+}
+
+const { categories, currentFilters } = Astro.props;
+
+const languageOptions = Object.entries(LANGUAGE_CONFIG).map(([value, config]) => ({
+  value,
+  label: config.label,
+}));
+
+const typeOptions = Object.entries(RESOURCE_TYPE_CONFIG).map(([value, config]) => ({
+  value,
+  label: config.label,
+}));
+
+// Check if any filters are active
+const hasActiveFilters = currentFilters.categoryId || currentFilters.language || currentFilters.type;
+---
+
+<form method="GET" action="/recursos" class="flex flex-wrap gap-2 items-center">
+  <!-- Category filter chip -->
+  <div class="relative group/category">
+    <select
+      name="categoryId"
+      class="appearance-none pl-3 pr-8 py-2 bg-surface border border-border rounded-lg text-sm text-text-muted hover:text-text hover:border-border-bright cursor-pointer transition-all duration-150 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted"
+    >
+      <option value="">Categoría</option>
+      {categories.map(cat => (
+        <option value={cat.id} selected={currentFilters.categoryId === cat.id}>
+          {cat.name}
+        </option>
+      ))}
+    </select>
+    <!-- Dropdown arrow -->
+    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+      <svg class="w-4 h-4 text-text-subtle group-hover/category:text-text-muted transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Language filter chip -->
+  <div class="relative group/language">
+    <select
+      name="language"
+      class="appearance-none pl-3 pr-8 py-2 bg-surface border border-border rounded-lg text-sm text-text-muted hover:text-text hover:border-border-bright cursor-pointer transition-all duration-150 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted"
+    >
+      <option value="">Idioma</option>
+      {languageOptions.map(opt => (
+        <option value={opt.value} selected={currentFilters.language === opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+      <svg class="w-4 h-4 text-text-subtle group-hover/language:text-text-muted transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Type filter chip -->
+  <div class="relative group/type">
+    <select
+      name="type"
+      class="appearance-none pl-3 pr-8 py-2 bg-surface border border-border rounded-lg text-sm text-text-muted hover:text-text hover:border-border-bright cursor-pointer transition-all duration-150 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted"
+    >
+      <option value="">Tipo</option>
+      {typeOptions.map(opt => (
+        <option value={opt.value} selected={currentFilters.type === opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+      <svg class="w-4 h-4 text-text-subtle group-hover/type:text-text-muted transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Keep search query if exists -->
+  {Astro.url.searchParams.has('q') && (
+    <input type="hidden" name="q" value={Astro.url.searchParams.get('q')} />
+  )}
+
+  <!-- Apply filters button -->
+  <button
+    type="submit"
+    class="px-4 py-2 bg-surface hover:bg-surface-elevated border border-border hover:border-border-bright text-text-muted hover:text-text text-sm rounded-lg transition-all duration-150 flex items-center gap-2 active:scale-[0.97]"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+    </svg>
+    Filtrar
+  </button>
+
+  <!-- Clear all filters -->
+  {hasActiveFilters && (
+    <a
+      href="/recursos"
+      class="px-3 py-2 text-text-subtle hover:text-text text-sm transition-colors duration-150 flex items-center gap-1.5 hover:bg-surface rounded-lg"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+      Limpiar
+    </a>
+  )}
+</form>

@@ -1,0 +1,26 @@
+---
+interface Props {
+  tags: string[];
+  maxVisible?: number;
+}
+
+const { tags, maxVisible = 3 } = Astro.props;
+const visibleTags = tags.slice(0, maxVisible);
+const remainingCount = tags.length - maxVisible;
+---
+
+<div class="flex flex-wrap gap-1.5">
+  {visibleTags.map((tag: string) => (
+    <span
+      class="px-1.5 py-0.5 text-xs rounded border text-text-subtle hover:text-text-muted transition-colors duration-150"
+      style="background-color: oklch(0.40 0.02 280 / 0.08); border-color: oklch(0.40 0.02 280 / 0.15);"
+    >
+      #{tag}
+    </span>
+  ))}
+  {remainingCount > 0 && (
+    <span class="px-1.5 py-0.5 text-xs text-text-subtle">
+      +{remainingCount}
+    </span>
+  )}
+</div>

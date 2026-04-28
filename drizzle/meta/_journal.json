@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1777316578134,
+      "tag": "0000_melted_wallop",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1745772600000,
+      "tag": "0001_rename_spanish_to_english",
+      "breakpoints": true
+    }
+  ]
+}
