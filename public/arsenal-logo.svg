@@ -1,33 +1,33 @@
 <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="arsenal-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#8b5cf6"/>
-      <stop offset="100%" stop-color="#a78bfa"/>
+      <stop offset="0%" stop-color="#D2C1B6"/>
+      <stop offset="100%" stop-color="#B8A799"/>
     </linearGradient>
     <linearGradient id="arsenal-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.2"/>
+      <stop offset="0%" stop-color="#D2C1B6" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#D2C1B6" stop-opacity="0.15"/>
     </linearGradient>
   </defs>
 
-  <!-- Background circle with subtle glow -->
-  <circle cx="60" cy="60" r="56" fill="#0d0d12"/>
-  <circle cx="60" cy="60" r="56" fill="url(#arsenal-glow)" opacity="0.3"/>
+  <!-- Background circle with subtle warm glow -->
+  <circle cx="60" cy="60" r="56" fill="#1B3C53"/>
+  <circle cx="60" cy="60" r="56" fill="url(#arsenal-glow)" opacity="0.4"/>
 
-  <!-- Outer ring -->
-  <circle cx="60" cy="60" r="54" stroke="#2a2a35" stroke-width="1.5" fill="none"/>
+  <!-- Outer ring - slate blue -->
+  <circle cx="60" cy="60" r="54" stroke="#456882" stroke-width="1.5" fill="none"/>
 
-  <!-- Arsenal "A" mark - stylized A with stacked bars -->
+  <!-- Arsenal "A" mark - warm sand -->
   <path d="M60 18L88 88H74L68 74H52L46 88H32L60 18Z" fill="url(#arsenal-gradient)"/>
 
-  <!-- Horizontal bar through the A -->
-  <rect x="42" y="56" width="36" height="7" rx="2" fill="#0d0d12"/>
+  <!-- Horizontal bar through the A - deep ocean -->
+  <rect x="42" y="56" width="36" height="7" rx="2" fill="#1B3C53"/>
 
-  <!-- Accent marks - subtle purple bars on sides -->
-  <rect x="24" y="48" width="10" height="3" rx="1" fill="#8b5cf6" opacity="0.5"/>
-  <rect x="86" y="48" width="10" height="3" rx="1" fill="#8b5cf6" opacity="0.5"/>
-  <rect x="24" y="58" width="10" height="3" rx="1" fill="#8b5cf6" opacity="0.35"/>
-  <rect x="86" y="58" width="10" height="3" rx="1" fill="#8b5cf6" opacity="0.35"/>
-  <rect x="24" y="68" width="10" height="3" rx="1" fill="#8b5cf6" opacity="0.2"/>
-  <rect x="86" y="68" width="10" height="3" rx="1" fill="#8b5cf6" opacity="0.2"/>
+  <!-- Accent marks - subtle sand bars on sides -->
+  <rect x="24" y="48" width="10" height="3" rx="1" fill="#D2C1B6" opacity="0.5"/>
+  <rect x="86" y="48" width="10" height="3" rx="1" fill="#D2C1B6" opacity="0.5"/>
+  <rect x="24" y="58" width="10" height="3" rx="1" fill="#D2C1B6" opacity="0.35"/>
+  <rect x="86" y="58" width="10" height="3" rx="1" fill="#D2C1B6" opacity="0.35"/>
+  <rect x="24" y="68" width="10" height="3" rx="1" fill="#D2C1B6" opacity="0.2"/>
+  <rect x="86" y="68" width="10" height="3" rx="1" fill="#D2C1B6" opacity="0.2"/>
 </svg>

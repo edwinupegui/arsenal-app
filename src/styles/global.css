@@ -1,91 +1,93 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ARSENAL DESIGN SYSTEM — Global Styles
-   Cinematic dark palette with purple tint, electric violet accent
+   ARSENAL DESIGN SYSTEM — Deep Ocean & Warm Sand Palette
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   TAILwind THEME — Design Tokens
+   TAILWIND THEME — Design Tokens
    ───────────────────────────────────────────────────────────────────────────── */
 @theme {
-  /* Fonts */
+  /* Fonts — Geist (loaded via Google Fonts in Layout) */
   --font-sans: "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     SURFACE — Dark cinematic with purple undertone
+     SURFACE — Deep Ocean Blues
+     Based on: #1B3C53 (Deep Ocean), #234C6A (Twilight Sea), #456882 (Slate)
      ═══════════════════════════════════════════════════════════════════════════ */
-  --color-bg:            oklch(0.12 0.02 280);
-  --color-surface:       oklch(0.14 0.02 280);
-  --color-surface-hover: oklch(0.17 0.02 280);
-  --color-surface-elevated: oklch(0.17 0.02 280);
-  --color-overlay:       oklch(0.10 0.02 280);
+  --color-bg:              oklch(0.15 0.035 235);
+  --color-surface:          oklch(0.18 0.038 235);
+  --color-surface-hover:    oklch(0.22 0.040 235);
+  --color-surface-elevated: oklch(0.26 0.042 235);
+  --color-overlay:          oklch(0.12 0.030 235);
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     BORDERS — Purple-tinted
+     BORDERS — Slate Blue variants
      ═══════════════════════════════════════════════════════════════════════════ */
-  --color-border:        oklch(0.20 0.02 280);
-  --color-border-subtle: oklch(0.17 0.02 280);
-  --color-border-bright:  oklch(0.28 0.02 280);
+  --color-border:        oklch(0.28 0.040 235);
+  --color-border-subtle: oklch(0.22 0.035 235);
+  --color-border-bright: oklch(0.38 0.050 235);
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     TEXT — Cool-tinted whites
+     TEXT — Warm Cream (tinted toward warm sand accent)
+     Note: Not pure white — has subtle warmth to complement sand accent
      ═══════════════════════════════════════════════════════════════════════════ */
-  --color-text:          oklch(0.92 0.01 280);
-  --color-text-muted:    oklch(0.55 0.02 280);
-  --color-text-subtle:   oklch(0.40 0.02 280);
+  --color-text:          oklch(0.92 0.015 60);
+  --color-text-muted:    oklch(0.68 0.018 60);
+  --color-text-subtle:   oklch(0.48 0.015 60);
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     ACCENT — Electric violet
+     ACCENT — Warm Sand (#D2C1B6)
+     The distinctive warm accent that differentiates Arsenal
      ═══════════════════════════════════════════════════════════════════════════ */
-  --color-accent:        oklch(0.65 0.18 290);
-  --color-accent-hover:  oklch(0.70 0.20 290);
-  --color-accent-muted:  oklch(0.65 0.12 290 / 0.15);
-  --color-accent-glow:   oklch(0.65 0.18 290 / 0.25);
+  --color-accent:        oklch(0.82 0.060 70);
+  --color-accent-hover:  oklch(0.88 0.065 70);
+  --color-accent-muted: oklch(0.82 0.060 70 / 0.12);
+  --color-accent-glow:   oklch(0.82 0.060 70 / 0.25);
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     SEMANTIC
+     SEMANTIC — Warm variants adapted to ocean palette
      ═══════════════════════════════════════════════════════════════════════════ */
-  --color-success:       oklch(0.70 0.18 145);
-  --color-success-bg:    oklch(0.70 0.18 145 / 0.12);
-  --color-warning:       oklch(0.75 0.18 85);
-  --color-warning-bg:    oklch(0.75 0.18 85 / 0.12);
-  --color-danger:        oklch(0.65 0.22 25);
-  --color-danger-bg:     oklch(0.65 0.22 25 / 0.12);
-  --color-info:          oklch(0.65 0.18 200);
-  --color-info-bg:       oklch(0.65 0.18 200 / 0.12);
+  --color-success:       oklch(0.68 0.12 155);
+  --color-success-bg:     oklch(0.68 0.12 155 / 0.12);
+  --color-warning:        oklch(0.75 0.14 85);
+  --color-warning-bg:    oklch(0.75 0.14 85 / 0.12);
+  --color-danger:        oklch(0.62 0.18 25);
+  --color-danger-bg:     oklch(0.62 0.18 25 / 0.12);
+  --color-info:          oklch(0.62 0.14 220);
+  --color-info-bg:       oklch(0.62 0.14 220 / 0.12);
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     RESOURCE TYPE COLORS — Distinctive per type
+     RESOURCE TYPE COLORS — Type-specific with brand cohesion
      ═══════════════════════════════════════════════════════════════════════════ */
-  --color-type-video:    oklch(0.62 0.22 25);
-  --color-type-article:  oklch(0.65 0.18 200);
-  --color-type-tool:     oklch(0.68 0.18 155);
-  --color-type-repo:     oklch(0.65 0.18 290);
+  --color-type-video:    oklch(0.60 0.18 25);
+  --color-type-article:   oklch(0.62 0.14 220);
+  --color-type-tool:     oklch(0.64 0.12 155);
+  --color-type-repo:     oklch(0.82 0.060 70);
 
   /* ═══════════════════════════════════════════════════════════════════════════
      LANGUAGE COLORS
      ═══════════════════════════════════════════════════════════════════════════ */
-  --color-lang-es:       oklch(0.68 0.16 145);
-  --color-lang-en:       oklch(0.65 0.18 220);
+  --color-lang-es:       oklch(0.68 0.12 145);
+  --color-lang-en:       oklch(0.62 0.14 220);
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     SPACING — Base 4px scale
+     SPACING — Base 4px scale with varied rhythm
      ═══════════════════════════════════════════════════════════════════════════ */
-  --space-xs:  0.25rem;   /* 4px  */
-  --space-sm:  0.5rem;    /* 8px  */
-  --space-md:  0.75rem;   /* 12px */
-  --space-lg:  1rem;      /* 16px */
-  --space-xl:  1.25rem;   /* 20px */
-  --space-2xl:  1.5rem;    /* 24px */
-  --space-3xl: 2rem;      /* 32px */
-  --space-4xl: 2.5rem;    /* 40px */
-  --space-5xl: 3rem;      /* 48px */
-  --space-6xl: 4rem;     /* 64px */
+  --space-2xs: 0.125rem;   /* 2px  — micro gaps */
+  --space-xs:  0.25rem;     /* 4px  — badge padding, icon gaps */
+  --space-sm:  0.5rem;      /* 8px  — inline elements */
+  --space-md:  0.75rem;     /* 12px — related elements group */
+  --space-lg:  1rem;        /* 16px — standard padding */
+  --space-xl:  1.5rem;      /* 24px — section padding */
+  --space-2xl: 2rem;        /* 32px — card internal, gap */
+  --space-3xl: 3rem;        /* 48px — section separation */
+  --space-4xl: 4rem;        /* 64px — major sections */
+  --space-5xl: 6rem;        /* 96px — hero, dense areas */
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     BORDER RADIUS
+     BORDER RADIUS — Refined scale
      ═══════════════════════════════════════════════════════════════════════════ */
   --radius-sm:  6px;
   --radius-md:  10px;
@@ -95,35 +97,38 @@
   --radius-full: 9999px;
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     SHADOWS — Purple-tinted (no pure black)
+     SHADOWS — Ocean-tinted (no pure black)
      ═══════════════════════════════════════════════════════════════════════════ */
-  --shadow-sm:   0 1px 2px oklch(0 0 0 / 0.3), 0 1px 3px oklch(0 0 0 / 0.2);
-  --shadow-md:    0 4px 6px oklch(0 0 0 / 0.25), 0 2px 4px oklch(0 0 0 / 0.2);
-  --shadow-lg:    0 10px 15px oklch(0 0 0 / 0.25), 0 4px 6px oklch(0 0 0 / 0.2);
-  --shadow-glow:  0 0 20px oklch(0.65 0.18 290 / 0.3);
-  --shadow-glow-sm: 0 0 10px oklch(0.65 0.18 290 / 0.2);
+  --shadow-sm:   0 1px 2px oklch(0 0 0 / 0.25), 0 1px 3px oklch(0 0 0 / 0.15);
+  --shadow-md:    0 4px 6px oklch(0 0 0 / 0.20), 0 2px 4px oklch(0 0 0 / 0.15);
+  --shadow-lg:    0 10px 15px oklch(0 0 0 / 0.20), 0 4px 6px oklch(0 0 0 / 0.15);
+  --shadow-glow:  0 0 20px oklch(0.82 0.060 70 / 0.30);
+  --shadow-glow-sm: 0 0 10px oklch(0.82 0.060 70 / 0.20);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CSS CUSTOM PROPERTIES — For JS access and complex animations
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  /* Easing curves */
-  --ease-out:   cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Easing curves — punchy and refined (from Emil Design Engineering) */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out:    cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-drawer:    cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Durations */
-  --duration-fast:   100ms;
-  --duration-normal: 200ms;
-  --duration-slow:   300ms;
-  --duration-slower: 400ms;
+  /* Durations — responsive = fast */
+  --duration-instant: 50ms;
+  --duration-fast:    100ms;
+  --duration-normal:  150ms;
+  --duration-slow:    250ms;
+  --duration-slower:  400ms;
 
   /* Blur */
   --blur-sm:  4px;
   --blur-md:  8px;
   --blur-lg:  12px;
+  --blur-xl:  20px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -135,8 +140,6 @@
 
 html {
   scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -148,10 +151,10 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SELECTION — Branded purple tint
+   SELECTION — Branded warm sand tint
    ═══════════════════════════════════════════════════════════════════════════ */
 ::selection {
-  background-color: oklch(0.65 0.18 290 / 0.3);
+  background-color: oklch(0.82 0.060 70 / 0.30);
   color: var(--color-text);
 }
 
@@ -177,7 +180,7 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   FOCUS VISIBLE — Accent ring, offset
+   FOCUS VISIBLE — Sand accent ring
    ═══════════════════════════════════════════════════════════════════════════ */
 :focus-visible {
   outline: 2px solid var(--color-accent);
@@ -196,7 +199,6 @@ body {
   text-wrap: balance;
 }
 
-/* Line clamp */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -212,14 +214,14 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   KEYFRAME ANIMATIONS
+   KEYFRAME ANIMATIONS — Rich + Purposeful
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Fade + slide up — fortoast, cards entering */
+/* Fade + slide up — page entrance, cards, toast */
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -227,7 +229,7 @@ body {
   }
 }
 
-/* Fade + slide from left — for breadcrumbs, back navigation */
+/* Fade + slide from left — breadcrumbs, back navigation */
 @keyframes fade-left {
   from {
     opacity: 0;
@@ -239,7 +241,7 @@ body {
   }
 }
 
-/* Scale + fade — for modals, dialogs */
+/* Scale + fade — modals, dialogs */
 @keyframes scale-in {
   from {
     opacity: 0;
@@ -251,17 +253,17 @@ body {
   }
 }
 
-/* Subtle pulse — for loading indicators */
+/* Subtle pulse — loading indicators */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 0 0 oklch(0.65 0.18 290 / 0.4);
+    box-shadow: 0 0 0 0 oklch(0.82 0.060 70 / 0.40);
   }
   50% {
-    box-shadow: 0 0 0 8px oklch(0.65 0.18 290 / 0);
+    box-shadow: 0 0 0 8px oklch(0.82 0.060 70 / 0);
   }
 }
 
-/* Spin — for loading spinners */
+/* Spin — loading spinners */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -271,19 +273,49 @@ body {
   }
 }
 
+/* Float — empty state illustrations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Shimmer — button hover effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Underline expand from center — links */
+@keyframes underline-expand {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    ANIMATION UTILITY CLASSES
    ═══════════════════════════════════════════════════════════════════════════ */
 .animate-fade-up {
-  animation: fade-up var(--duration-slower) var(--ease-out) forwards;
+  animation: fade-up var(--duration-slower) var(--ease-out-expo) forwards;
 }
 
 .animate-fade-left {
-  animation: fade-left var(--duration-slower) var(--ease-out) forwards;
+  animation: fade-left var(--duration-slower) var(--ease-out-expo) forwards;
 }
 
 .animate-scale-in {
-  animation: scale-in var(--duration-normal) var(--ease-out) forwards;
+  animation: scale-in var(--duration-normal) var(--ease-out-expo) forwards;
 }
 
 .animate-pulse-glow {
@@ -294,13 +326,17 @@ body {
   animation: spin 1s linear infinite;
 }
 
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    STAGGER ANIMATIONS — For lists with delayed entrance
    ═══════════════════════════════════════════════════════════════════════════ */
 .stagger-enter > * {
   opacity: 0;
   transform: translateY(12px);
-  animation: fade-up var(--duration-slower) var(--ease-out) forwards;
+  animation: fade-up var(--duration-slower) var(--ease-out-expo) forwards;
 }
 
 .stagger-enter > *:nth-child(1)  { animation-delay: 0ms; }
@@ -319,7 +355,7 @@ body {
    DIALOG / MODAL BACKDROP
    ═══════════════════════════════════════════════════════════════════════════ */
 dialog::backdrop {
-  background: oklch(0 0 0 / 0.7);
+  background: oklch(0 0 0 / 0.70);
   backdrop-filter: blur(var(--blur-md));
 }
 
@@ -370,15 +406,15 @@ dialog::backdrop {
   border-radius: var(--radius-lg);
   padding: var(--space-xl);
   transition:
-    border-color var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal) var(--ease-out),
-    transform var(--duration-normal) var(--ease-out);
+    border-color var(--duration-normal) var(--ease-out-expo),
+    box-shadow var(--duration-normal) var(--ease-out-expo),
+    transform var(--duration-normal) var(--ease-out-expo);
 }
 
 /* Button press feedback — CRITICAL for responsiveness */
 .btn-press:active {
   transform: scale(0.97);
-  transition: transform var(--duration-fast) var(--ease-out);
+  transition: transform var(--duration-fast) var(--ease-out-expo);
 }
 
 /* Input base */
@@ -389,8 +425,8 @@ dialog::backdrop {
   color: var(--color-text);
   padding: var(--space-sm) var(--space-md);
   transition:
-    border-color var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal) var(--ease-out);
+    border-color var(--duration-normal) var(--ease-out-expo),
+    box-shadow var(--duration-normal) var(--ease-out-expo);
 }
 
 .input-base::placeholder {
@@ -415,25 +451,27 @@ dialog::backdrop {
   border: 1px solid;
 }
 
-/* Type-specific card glow on hover */
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPE-SPECIFIC CARD GLOW ON HOVER
+   ═══════════════════════════════════════════════════════════════════════════ */
 .card[data-type="video"]:hover {
   border-color: var(--color-type-video);
-  box-shadow: 0 0 20px oklch(0.62 0.22 25 / 0.2);
+  box-shadow: 0 0 24px oklch(0.60 0.18 25 / 0.20);
 }
 
 .card[data-type="article"]:hover {
   border-color: var(--color-type-article);
-  box-shadow: 0 0 20px oklch(0.65 0.18 200 / 0.2);
+  box-shadow: 0 0 24px oklch(0.62 0.14 220 / 0.20);
 }
 
 .card[data-type="tool"]:hover {
   border-color: var(--color-type-tool);
-  box-shadow: 0 0 20px oklch(0.68 0.18 155 / 0.2);
+  box-shadow: 0 0 24px oklch(0.64 0.12 155 / 0.20);
 }
 
 .card[data-type="repo"]:hover {
   border-color: var(--color-type-repo);
-  box-shadow: 0 0 20px oklch(0.65 0.18 290 / 0.2);
+  box-shadow: 0 0 24px oklch(0.82 0.060 70 / 0.20);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -445,11 +483,11 @@ dialog::backdrop {
 
 /* Page transition */
 ::view-transition-old(root) {
-  animation: 200ms var(--ease-out) both fade-out;
+  animation: 200ms var(--ease-out-expo) both fade-out;
 }
 
 ::view-transition-new(root) {
-  animation: 300ms var(--ease-out) both slide-from-bottom;
+  animation: 350ms var(--ease-out-expo) both slide-from-bottom;
 }
 
 @keyframes fade-out {
@@ -461,7 +499,7 @@ dialog::backdrop {
 @keyframes slide-from-bottom {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
 }
 
@@ -472,11 +510,11 @@ dialog::backdrop {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   LINK STYLES — Consistent navigation links
+   LINK STYLES — Consistent navigation links with animated underline
    ═══════════════════════════════════════════════════════════════════════════ */
 @layer base {
   a:not([class*="bg-"]) {
-    transition: color var(--duration-normal) var(--ease-out);
+    transition: color var(--duration-normal) var(--ease-out-expo);
   }
 
   a:not([class*="bg-"]):hover {
@@ -489,8 +527,8 @@ dialog::backdrop {
    ═══════════════════════════════════════════════════════════════════════════ */
 @media (hover: hover) and (pointer: fine) {
   .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
   }
 
   .hover-glow:hover {
@@ -498,6 +536,77 @@ dialog::backdrop {
   }
 
   .hover-scale:hover {
+    transform: scale(1.02);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACCENT LINE — Top border reveal animation for cards
+   ═══════════════════════════════════════════════════════════════════════════ */
+.accent-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.accent-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--line-color, var(--color-accent)), transparent);
+  transform: scaleX(0);
+  transition: transform var(--duration-slow) var(--ease-out-expo);
+}
+
+.accent-line:hover::before {
+  transform: scaleX(1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHIMMER BUTTON — Accent sand shimmer on hover
+   ═══════════════════════════════════════════════════════════════════════════ */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out-expo);
+}
+
+.btn-shimmer:hover::after {
+  opacity: 1;
+  animation: shimmer 600ms var(--ease-out-expo);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TAG CHIP — Hover expansion effect
+   ═══════════════════════════════════════════════════════════════════════════ */
+.tag-chip {
+  transition:
+    background-color var(--duration-fast) var(--ease-out-expo),
+    border-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tag-chip:hover {
+    background-color: var(--color-accent-muted);
+    border-color: var(--color-accent);
+    color: var(--color-text);
     transform: scale(1.02);
   }
 }

@@ -18,15 +18,15 @@ const {
 
 <dialog
     id={id}
-    class="bg-surface border border-border rounded-xl p-6 w-full max-w-md backdrop:bg-black/60 backdrop:backdrop-blur-sm"
+    class="bg-surface border border-border rounded-xl p-6 w-full max-w-md animate-scale-in"
 >
     <div class="flex flex-col gap-4">
         <div class="flex items-start gap-3">
             <div
-                class="w-10 h-10 rounded-full bg-red-900/30 flex items-center justify-center shrink-0"
+                class="w-10 h-10 rounded-full bg-danger-bg flex items-center justify-center shrink-0"
             >
                 <svg
-                    class="w-5 h-5 text-red-400"
+                    class="w-5 h-5 text-danger"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -49,14 +49,14 @@ const {
             <button
                 type="button"
                 onclick={`document.getElementById('${id}').close()`}
-                class="px-4 py-2 bg-surface-hover hover:bg-border border border-border text-text text-sm font-medium rounded-lg transition-colors"
+                class="btn-press px-4 py-2 bg-surface-hover hover:bg-border border border-border text-text text-sm font-medium rounded-lg transition-colors"
             >
                 {cancelLabel}
             </button>
             <button
                 type="button"
                 id={`${id}-confirm`}
-                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                class="btn-press px-4 py-2 bg-danger hover:bg-danger/80 text-danger-bg text-sm font-medium rounded-lg transition-colors"
             >
                 {confirmLabel}
             </button>

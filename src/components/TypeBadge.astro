@@ -14,12 +14,11 @@ const sizeClasses = {
   md: 'px-2.5 py-1 text-sm',
 };
 
-// Type-specific colors
 const typeColors = {
-  video:   { bg: '0.62 0.22 25',   text: '0.68 0.18 25'   },
-  article: { bg: '0.65 0.18 200',  text: '0.70 0.15 200'  },
-  tool:    { bg: '0.68 0.18 155',  text: '0.72 0.15 155'  },
-  repo:    { bg: '0.65 0.18 290',  text: '0.70 0.15 290'  },
+  video:   { bg: '0.60 0.18 25',   text: '0.65 0.15 25'   },
+  article: { bg: '0.62 0.14 220',  text: '0.68 0.12 220'  },
+  tool:    { bg: '0.64 0.12 155',  text: '0.70 0.10 155'  },
+  repo:    { bg: '0.82 0.06 70',   text: '0.88 0.05 70'   },
 };
 
 const colors = typeColors[type as keyof typeof typeColors] || typeColors.video;
@@ -29,7 +28,7 @@ const colors = typeColors[type as keyof typeof typeColors] || typeColors.video;
     class={`flex items-center gap-1.5 ${sizeClasses[size]} rounded border`}
     style={`
         background-color: oklch(${colors.bg} / 0.12);
-        border-color: oklch(${colors.bg} / 0.3);
+        border-color: oklch(${colors.bg} / 0.30);
         color: oklch(${colors.text});
     `}
 >

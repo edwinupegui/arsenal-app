@@ -60,7 +60,7 @@ const resourcesWithCategory: Array<{
             </div>
             <a
                 href="/recursos"
-                class="px-4 py-2 bg-surface-hover hover:bg-border border border-border text-text text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                class="btn-press px-4 py-2 bg-surface-hover hover:bg-border border border-border text-text text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
             >
                 <svg
                     class="w-4 h-4"
@@ -82,17 +82,21 @@ const resourcesWithCategory: Array<{
         {
             resourcesWithCategory.length === 0 ? (
                 <div class="flex flex-col items-center justify-center py-24 text-center animate-fade-up">
-                    <!-- Trash icon -->
-                    <div class="w-20 h-20 rounded-2xl bg-surface border border-border flex items-center justify-center mb-6">
-                        <svg class="w-10 h-10 text-text-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
+                    {/* Trash icon */}
+                    <div class="relative mb-6 animate-float">
+                        <div class="w-20 h-20 rounded-2xl bg-surface border border-border flex items-center justify-center">
+                            <svg class="w-10 h-10 text-text-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </div>
+                        <div class="absolute -top-2 -right-2 w-4 h-4 rounded-full border border-border opacity-50"></div>
+                        <div class="absolute -bottom-1 -left-3 w-3 h-3 rounded-full bg-danger/20"></div>
                     </div>
 
                     <h3 class="text-text font-semibold text-xl mb-3">
                         Papelera vacía
                     </h3>
-                    <p class="text-text-muted text-base max-w-[28rem] leading-relaxed">
+                    <p class="text-text-muted text-base max-w-md leading-relaxed">
                         Los recursos que elimines aparecerán aquí.<br class="hidden sm:block" />
                         Puedes restaurarlos o eliminarlos permanentemente.
                     </p>
@@ -113,7 +117,7 @@ const resourcesWithCategory: Array<{
                             : "Fecha desconocida";
 
                         return (
-                            <div class="bg-surface border border-border rounded-xl p-4 flex items-center justify-between gap-4">
+                            <div class="bg-surface border border-border rounded-xl p-4 flex items-center justify-between gap-4 hover:border-border-bright transition-colors duration-150">
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2 mb-1">
                                         <h3 class="font-medium text-text truncate">
@@ -124,7 +128,7 @@ const resourcesWithCategory: Array<{
                                             icon={category.icon}
                                         />
                                     </div>
-                                    <div class="flex items-center gap-3 text-xs text-muted">
+                                    <div class="flex items-center gap-3 text-xs text-text-muted">
                                         <span class="truncate max-w-[18rem]">
                                             {resource.url.replace(
                                                 /^https?:\/\//,
@@ -145,7 +149,7 @@ const resourcesWithCategory: Array<{
                                     >
                                         <button
                                             type="submit"
-                                            class="px-3 py-1.5 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 border border-emerald-800/50"
+                                            class="btn-press px-3 py-1.5 bg-success-bg hover:bg-success/20 text-success text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 border border-success/30"
                                             title="Restaurar recurso"
                                         >
                                             <svg
@@ -172,7 +176,7 @@ const resourcesWithCategory: Array<{
                                     >
                                         <button
                                             type="submit"
-                                            class="px-3 py-1.5 bg-red-900/30 hover:bg-red-900/50 text-red-400 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 border border-red-800/50"
+                                            class="btn-press px-3 py-1.5 bg-danger-bg hover:bg-danger/20 text-danger text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 border border-danger/30"
                                             title="Eliminar permanentemente"
                                             onclick="return confirm('¿Eliminar permanentemente? Esta acción no se puede deshacer.')"
                                         >

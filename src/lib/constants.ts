@@ -20,20 +20,19 @@ export const RESOURCE_TYPE_CONFIG = {
 
 export type ResourceType = keyof typeof RESOURCE_TYPE_CONFIG;
 
-// Language configuration
+// Language configuration with OKLCH values
 export const LANGUAGE_CONFIG = {
   ES: {
     label: 'ES',
-    // OKLCH values for the badge
-    color: '0.68 0.16 145',      // Text color - green
-    bgColor: '0.68 0.16 145',     // Background accent
-    badgeClass: 'bg-emerald-900/50 text-emerald-400 border-emerald-800',
+    color: '0.68 0.12 145',
+    bgColor: '0.68 0.12 145',
+    badgeClass: 'border-emerald-800/50 text-emerald-300',
   },
   EN: {
     label: 'EN',
-    color: '0.65 0.18 220',      // Text color - blue
-    bgColor: '0.65 0.18 220',     // Background accent
-    badgeClass: 'bg-blue-900/50 text-blue-400 border-blue-800',
+    color: '0.62 0.14 220',
+    bgColor: '0.62 0.14 220',
+    badgeClass: 'border-blue-800/50 text-blue-300',
   },
 } as const;
 

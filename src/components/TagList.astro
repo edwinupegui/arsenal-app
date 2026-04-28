@@ -12,8 +12,8 @@ const remainingCount = tags.length - maxVisible;
 <div class="flex flex-wrap gap-1.5">
   {visibleTags.map((tag: string) => (
     <span
-      class="px-1.5 py-0.5 text-xs rounded border text-text-subtle hover:text-text-muted transition-colors duration-150"
-      style="background-color: oklch(0.40 0.02 280 / 0.08); border-color: oklch(0.40 0.02 280 / 0.15);"
+      class="tag-chip px-1.5 py-0.5 text-xs rounded border text-text-subtle"
+      style="background-color: oklch(0.28 0.04 235 / 0.08); border-color: oklch(0.28 0.04 235 / 0.15);"
     >
       #{tag}
     </span>
