@@ -34,12 +34,12 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
 
   // Check if admin credentials are configured
   // Use import.meta.env for Astro SSR (works in server context)
-  const adminUser = import.meta.env.ADMIN_USER;
-  const adminPassword = import.meta.env.ADMIN_PASSWORD;
+  const adminUser = import.meta.env.ADMIN_USER as string | undefined;
+  const adminPassword = import.meta.env.ADMIN_PASSWORD as string | undefined;
 
   // If no credentials configured, deny all mutations for security
   if (!adminUser || !adminPassword) {
-    // Return generic 500 without leaking configuration details
+    console.error('[Auth] Admin credentials not configured. Set ADMIN_USER and ADMIN_PASSWORD in .env');
     return new Response('Server configuration error', { status: 500 });
   }
 
