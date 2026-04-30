@@ -1,17 +1,103 @@
 ---
-import { resourceService } from '../../../lib/resources';
-import { isOk } from '../../../lib/result';
+import Layout from "../../../layouts/Layout.astro";
+import ConfirmDialog from "../../../components/ConfirmDialog.astro";
+import {
+    getResourceById,
+    parseTags,
+} from "../../../lib/resources";
 
 const { id } = Astro.params;
 if (!id || isNaN(parseInt(id))) {
-    return Astro.redirect('/recursos/trash?error=invalid-id');
+    return Astro.redirect("/recursos/trash?error=invalid-id");
 }
 const resourceId = parseInt(id);
 
-const result = resourceService.restoreResource(resourceId);
-if (!isOk(result)) {
-    return Astro.redirect('/recursos/trash?error=restore-failed');
+const resourceResult = getResourceById(resourceId);
+
+if (
+    !resourceResult.ok ||
+    !resourceResult.value ||
+    !resourceResult.value.deletedAt
+) {
+    return Astro.redirect("/recursos/trash?error=not-found");
 }
 
-return Astro.redirect('/recursos/trash?restored=true');
+const resource = resourceResult.value;
+const resourceData = {
+    ...resource,
+    tags: parseTags(resource.tags),
+};
 ---
+
+<Layout title={`Restaurar: ${resource.title} — Arsenal`}>
+    <div class="max-w-lg mx-auto">
+        <div class="mb-6">
+            <a
+                href="/recursos/trash"
+                class="inline-flex items-center gap-2 text-text-muted hover:text-text transition-colors duration-150 group"
+            >
+                <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                <span class="text-sm">Volver a la papelera</span>
+            </a>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-6">
+            <h1 class="text-xl font-bold text-text mb-2">Restaurar recurso</h1>
+            <p class="text-text-muted mb-6">
+                ¿Estás seguro de que quieres restaurar <strong class="text-text">{resource.title}</strong>?
+                El recurso volverá a aparecer en la lista principal.
+            </p>
+
+            <form
+                id="restore-form"
+                method="POST"
+                action={`/api/resources/${resourceId}/restore`}
+                class="flex gap-3 justify-end"
+            >
+                <a
+                    href="/recursos/trash"
+                    class="px-4 py-2 bg-surface-elevated hover:bg-overlay border border-border text-text text-sm rounded-lg transition-all duration-150"
+                >
+                    Cancelar
+                </a>
+                <button
+                    type="submit"
+                    class="btn-press px-4 py-2 bg-accent hover:bg-accent-hover text-bg text-sm font-medium rounded-lg transition-all duration-150"
+                >
+                    Restaurar
+                </button>
+            </form>
+        </div>
+
+        <ConfirmDialog
+            id="restore-confirm"
+            title="Restaurar recurso"
+            message="¿Estás seguro de que quieres restaurar este recurso?"
+            confirmLabel="Restaurar"
+            cancelLabel="Cancelar"
+        />
+    </div>
+</Layout>
+
+<script>
+    const form = document.getElementById('restore-form') as HTMLFormElement;
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const confirmed = await (window as any).showConfirmDialog('restore-confirm');
+        if (!confirmed) return;
+
+        const response = await fetch(form.action, {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            window.location.href = '/recursos/trash?restored=true';
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Error al restaurar');
+        }
+    });
+</script>

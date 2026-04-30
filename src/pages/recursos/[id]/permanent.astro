@@ -1,17 +1,103 @@
 ---
-import { resourceService } from '../../../lib/resources';
-import { isOk } from '../../../lib/result';
+import Layout from "../../../layouts/Layout.astro";
+import ConfirmDialog from "../../../components/ConfirmDialog.astro";
+import {
+    getResourceById,
+    parseTags,
+} from "../../../lib/resources";
 
 const { id } = Astro.params;
 if (!id || isNaN(parseInt(id))) {
-    return Astro.redirect('/recursos/trash?error=invalid-id');
+    return Astro.redirect("/recursos/trash?error=invalid-id");
 }
 const resourceId = parseInt(id);
 
-const result = resourceService.permanentDeleteResource(resourceId);
-if (!isOk(result)) {
-    return Astro.redirect('/recursos/trash?error=delete-failed');
+const resourceResult = getResourceById(resourceId);
+
+if (
+    !resourceResult.ok ||
+    !resourceResult.value ||
+    !resourceResult.value.deletedAt
+) {
+    return Astro.redirect("/recursos/trash?error=not-found");
 }
 
-return Astro.redirect('/recursos/trash?deleted=true');
+const resource = resourceResult.value;
+const resourceData = {
+    ...resource,
+    tags: parseTags(resource.tags),
+};
 ---
+
+<Layout title={`Eliminar permanentemente: ${resource.title} — Arsenal`}>
+    <div class="max-w-lg mx-auto">
+        <div class="mb-6">
+            <a
+                href="/recursos/trash"
+                class="inline-flex items-center gap-2 text-text-muted hover:text-text transition-colors duration-150 group"
+            >
+                <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                <span class="text-sm">Volver a la papelera</span>
+            </a>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-6">
+            <h1 class="text-xl font-bold text-danger mb-2">Eliminar permanentemente</h1>
+            <p class="text-text-muted mb-6">
+                ¿Estás seguro de que quieres eliminar <strong class="text-text">{resource.title}</strong>?
+                <span class="text-danger font-medium">Esta acción no se puede deshacer.</span>
+            </p>
+
+            <form
+                id="permanent-form"
+                method="POST"
+                action={`/api/resources/${resourceId}/permanent`}
+                class="flex gap-3 justify-end"
+            >
+                <a
+                    href="/recursos/trash"
+                    class="px-4 py-2 bg-surface-elevated hover:bg-overlay border border-border text-text text-sm rounded-lg transition-all duration-150"
+                >
+                    Cancelar
+                </a>
+                <button
+                    type="submit"
+                    class="btn-press px-4 py-2 bg-danger hover:bg-danger/80 text-white text-sm font-medium rounded-lg transition-all duration-150"
+                >
+                    Eliminar permanentemente
+                </button>
+            </form>
+        </div>
+
+        <ConfirmDialog
+            id="permanent-confirm"
+            title="Eliminación permanente"
+            message="¿Estás seguro? Este recurso se eliminará definitivamente y no podrá ser recuperado."
+            confirmLabel="Eliminar"
+            cancelLabel="Cancelar"
+        />
+    </div>
+</Layout>
+
+<script>
+    const form = document.getElementById('permanent-form') as HTMLFormElement;
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const confirmed = await (window as any).showConfirmDialog('permanent-confirm');
+        if (!confirmed) return;
+
+        const response = await fetch(form.action, {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            window.location.href = '/recursos/trash?deleted=true';
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Error al eliminar');
+        }
+    });
+</script>

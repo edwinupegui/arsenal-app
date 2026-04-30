@@ -1,52 +1,11 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import ResourceForm from "../../components/ResourceForm.astro";
-import { listCategories, resourceService } from "../../lib/resources";
-import { isOk } from "../../lib/result";
+import ConfirmDialog from "../../components/ConfirmDialog.astro";
+import { listCategories } from "../../lib/resources";
 
 const categoriesResult = listCategories();
 const categories = categoriesResult.ok ? categoriesResult.value : [];
-
-if (Astro.request.method === "POST") {
-    try {
-        const formData = await Astro.request.formData();
-
-        const title = formData.get("title") as string;
-        const url = formData.get("url") as string;
-        const description = formData.get("description") as string;
-        const tagsRaw = formData.get("tags") as string;
-        const language = formData.get("language") as string;
-        const type = formData.get("type") as string;
-        const categoryId = parseInt(formData.get("categoryId") as string);
-
-        const tags = tagsRaw
-            ? tagsRaw
-                  .split(",")
-                  .map((t) => t.trim())
-                  .filter(Boolean)
-            : [];
-
-        const result = resourceService.createResource({
-            title,
-            url,
-            description,
-            tags,
-            language,
-            type,
-            categoryId,
-        });
-
-        if (isOk(result)) {
-            return Astro.redirect("/recursos?created=true");
-        } else {
-            return Astro.redirect(
-                `/recursos/new?error=${encodeURIComponent(result.error.message)}`,
-            );
-        }
-    } catch (e) {
-        return Astro.redirect("/recursos/new?error=Error+inesperado");
-    }
-}
 ---
 
 <Layout title="Nuevo Recurso — Arsenal">
@@ -78,5 +37,61 @@ if (Astro.request.method === "POST") {
         <div class="bg-surface border border-border rounded-xl p-6">
             <ResourceForm action="create" categories={categories} />
         </div>
+
+        <ConfirmDialog
+            id="create-confirm"
+            title="Crear recurso"
+            message="¿Estás seguro de que quieres crear este recurso?"
+            confirmLabel="Crear"
+            cancelLabel="Cancelar"
+        />
     </div>
 </Layout>
+
+<script>
+    const form = document.getElementById('resource-form') as HTMLFormElement;
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const confirmed = await (window as any).showConfirmDialog('create-confirm');
+        if (!confirmed) return;
+
+        const formData = new FormData(form);
+        const data: Record<string, unknown> = {};
+        formData.forEach((value, key) => {
+            if (key === 'categoryId' || key === 'metadata') {
+                // Skip, handled separately
+            } else {
+                data[key] = value;
+            }
+        });
+        data.categoryId = parseInt(formData.get('categoryId') as string);
+        data.tags = (formData.get('tags') as string)
+            ? (formData.get('tags') as string).split(',').map(t => t.trim()).filter(Boolean)
+            : [];
+
+        const metadataValue = formData.get('metadata');
+        if (metadataValue && (metadataValue as string).trim()) {
+            try {
+                data.metadata = JSON.parse(metadataValue as string);
+            } catch {
+                data.metadata = {};
+            }
+        }
+
+        const response = await fetch('/api/resources', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+            window.location.href = '/recursos?created=true';
+        } else {
+            const result = await response.json();
+            alert(result.error || 'Error al crear');
+        }
+    });
+</script>
