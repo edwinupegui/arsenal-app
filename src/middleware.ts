@@ -18,7 +18,7 @@ const PROTECTED_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
  * Credentials are sent with every subsequent request automatically.
  */
 export const onRequest: MiddlewareHandler = async (context, next) => {
-  const { request, env } = context;
+  const { request } = context;
   const url = new URL(request.url);
 
   // Only protect API routes
@@ -33,9 +33,9 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
   }
 
   // Check if admin credentials are configured
-  // Use context.env for Astro SSR (process.env doesn't have .env vars in SSR)
-  const adminUser = env.ADMIN_USER;
-  const adminPassword = env.ADMIN_PASSWORD;
+  // Use import.meta.env for Astro SSR (works in server context)
+  const adminUser = import.meta.env.ADMIN_USER;
+  const adminPassword = import.meta.env.ADMIN_PASSWORD;
 
   // If no credentials configured, deny all mutations for security
   if (!adminUser || !adminPassword) {
