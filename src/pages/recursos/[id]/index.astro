@@ -6,7 +6,21 @@ import {
     getCategoryById,
     parseTags,
 } from "../../../lib/resources";
-import { RESOURCE_TYPE_CONFIG, LANGUAGE_CONFIG } from "../../../lib/constants";
+import {
+    RESOURCE_TYPE_CONFIG,
+    LANGUAGE_CONFIG,
+} from "../../../lib/constants";
+import {
+    formatDuration,
+    formatPrice,
+    formatCount,
+    formatFrequency,
+    getExternalLinkLabel,
+    type CourseMetadata,
+    type PodcastMetadata,
+    type NewsletterMetadata,
+    type CommunityMetadata,
+} from "../../../lib/metadata";
 
 const { id } = Astro.params;
 if (!id || isNaN(parseInt(id))) {
@@ -45,6 +59,9 @@ const typeColors = {
 };
 
 const typeStyle = typeColors[resource.type as keyof typeof typeColors] || typeColors.video;
+
+const metadata = resource.metadata as Record<string, unknown> | null;
+const externalLinkLabel = getExternalLinkLabel(resource.type, metadata);
 ---
 
 <Layout
@@ -111,7 +128,7 @@ const typeStyle = typeColors[resource.type as keyof typeof typeColors] || typeCo
                             rel="noopener noreferrer"
                             class="btn-press btn-shimmer px-5 py-2.5 bg-accent hover:bg-accent-hover text-bg text-sm font-medium rounded-xl transition-all duration-150 flex items-center gap-2 shadow-sm hover:shadow-glow-sm shrink-0"
                         >
-                            Abrir
+                            {externalLinkLabel}
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
@@ -130,6 +147,214 @@ const typeStyle = typeColors[resource.type as keyof typeof typeColors] || typeCo
                     </div>
                 )
             }
+
+            {/* Type-specific metadata section */}
+            {metadata && Object.keys(metadata).length > 0 && (
+                <div class="px-6 py-5 border-t border-border bg-surface-subtle/30">
+                    {resource.type === 'course' && (
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-semibold text-text uppercase tracking-wide flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479L11 12H4z"></path>
+                                </svg>
+                                Detalles del curso
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                {(metadata as CourseMetadata).platform && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Plataforma:</span>
+                                        <span class="font-medium text-text">{(metadata as CourseMetadata).platform}</span>
+                                    </div>
+                                )}
+                                {(metadata as CourseMetadata).instructor && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Instructor:</span>
+                                        <span class="font-medium text-text">{(metadata as CourseMetadata).instructor}</span>
+                                    </div>
+                                )}
+                                {(metadata as CourseMetadata).durationMinutes && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Duración:</span>
+                                        <span class="font-medium text-text">{formatDuration((metadata as CourseMetadata).durationMinutes)}</span>
+                                    </div>
+                                )}
+                                {(metadata as CourseMetadata).level && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Nivel:</span>
+                                        <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                            (metadata as CourseMetadata).level === 'beginner' ? 'bg-emerald-500/20 text-emerald-300' :
+                                            (metadata as CourseMetadata).level === 'intermediate' ? 'bg-yellow-500/20 text-yellow-300' :
+                                            'bg-red-500/20 text-red-300'
+                                        }`}>
+                                            {(metadata as CourseMetadata).level}
+                                        </span>
+                                    </div>
+                                )}
+                                {(metadata as CourseMetadata).priceUsd !== undefined && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Precio:</span>
+                                        <span class="font-medium text-text">{formatPrice((metadata as CourseMetadata).priceUsd)}</span>
+                                    </div>
+                                )}
+                                {(metadata as CourseMetadata).modulesCount && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Módulos:</span>
+                                        <span class="font-medium text-text">{(metadata as CourseMetadata).modulesCount}</span>
+                                    </div>
+                                )}
+                            </div>
+                            {(metadata as CourseMetadata).syllabus && (metadata as CourseMetadata).syllabus!.length > 0 && (
+                                <div class="mt-4">
+                                    <span class="text-sm text-text-muted block mb-2">Contenido del curso:</span>
+                                    <ul class="space-y-1">
+                                        {(metadata as CourseMetadata).syllabus!.map((item, index) => (
+                                            <li class="flex items-start gap-2 text-sm">
+                                                <span class="text-accent font-medium">{index + 1}.</span>
+                                                <span class="text-text">{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {resource.type === 'podcast' && (
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-semibold text-text uppercase tracking-wide flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0-11V4m0 11v4m0-11h4m-11 0h4m-4-11a3 3 0 01-3-3V4a3 3 0 013-3h4a3 3 0 013 3v3a3 3 0 01-3 3z"></path>
+                                </svg>
+                                Detalles del podcast
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                {(metadata as PodcastMetadata).host && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Host:</span>
+                                        <span class="font-medium text-text">{(metadata as PodcastMetadata).host}</span>
+                                    </div>
+                                )}
+                                {(metadata as PodcastMetadata).episodeCount && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Episodios:</span>
+                                        <span class="font-medium text-text">{(metadata as PodcastMetadata).episodeCount}</span>
+                                    </div>
+                                )}
+                                {(metadata as PodcastMetadata).frequency && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Frecuencia:</span>
+                                        <span class="font-medium text-text capitalize">{formatFrequency((metadata as PodcastMetadata).frequency!)}</span>
+                                    </div>
+                                )}
+                                {(metadata as PodcastMetadata).platform && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Plataforma:</span>
+                                        <span class="font-medium text-text">{(metadata as PodcastMetadata).platform}</span>
+                                    </div>
+                                )}
+                            </div>
+                            {(metadata as PodcastMetadata).rssUrl && (
+                                <div class="flex items-center gap-2 text-sm mt-3">
+                                    <span class="text-text-muted">RSS:</span>
+                                    <a href={(metadata as PodcastMetadata).rssUrl} target="_blank" rel="noopener noreferrer" class="text-accent hover:underline truncate">
+                                        {(metadata as PodcastMetadata).rssUrl}
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {resource.type === 'newsletter' && (
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-semibold text-text uppercase tracking-wide flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                Detalles del newsletter
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                {(metadata as NewsletterMetadata).author && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Autor:</span>
+                                        <span class="font-medium text-text">{(metadata as NewsletterMetadata).author}</span>
+                                    </div>
+                                )}
+                                {(metadata as NewsletterMetadata).frequency && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Frecuencia:</span>
+                                        <span class="font-medium text-text capitalize">{formatFrequency((metadata as NewsletterMetadata).frequency!)}</span>
+                                    </div>
+                                )}
+                                {(metadata as NewsletterMetadata).subscriberCount && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Suscriptores:</span>
+                                        <span class="font-medium text-text">{formatCount((metadata as NewsletterMetadata).subscriberCount)}</span>
+                                    </div>
+                                )}
+                                {(metadata as NewsletterMetadata).platform && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Plataforma:</span>
+                                        <span class="font-medium text-text">{(metadata as NewsletterMetadata).platform}</span>
+                                    </div>
+                                )}
+                            </div>
+                            {(metadata as NewsletterMetadata).archiveUrl && (
+                                <div class="flex items-center gap-2 text-sm mt-3">
+                                    <span class="text-text-muted">Archivo:</span>
+                                    <a href={(metadata as NewsletterMetadata).archiveUrl} target="_blank" rel="noopener noreferrer" class="text-accent hover:underline truncate">
+                                        {(metadata as NewsletterMetadata).archiveUrl}
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {resource.type === 'community' && (
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-semibold text-text uppercase tracking-wide flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                Detalles de la comunidad
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="flex items-center gap-2 text-sm">
+                                    <span class="text-text-muted">Plataforma:</span>
+                                    <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent/20 text-accent`}>
+                                        {(metadata as CommunityMetadata).platform}
+                                    </span>
+                                </div>
+                                {(metadata as CommunityMetadata).memberCount && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Miembros:</span>
+                                        <span class="font-medium text-text">{formatCount((metadata as CommunityMetadata).memberCount)}</span>
+                                    </div>
+                                )}
+                                {(metadata as CommunityMetadata).isPrivate !== undefined && (
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <span class="text-text-muted">Tipo:</span>
+                                        <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                            (metadata as CommunityMetadata).isPrivate
+                                                ? 'bg-amber-500/20 text-amber-300'
+                                                : 'bg-emerald-500/20 text-emerald-300'
+                                        }`}>
+                                            {(metadata as CommunityMetadata).isPrivate ? 'Privada' : 'Pública'}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                            {(metadata as CommunityMetadata).inviteUrl && (
+                                <div class="flex items-center gap-2 text-sm mt-3">
+                                    <span class="text-text-muted">Enlace de invitación:</span>
+                                    <a href={(metadata as CommunityMetadata).inviteUrl} target="_blank" rel="noopener noreferrer" class="text-accent hover:underline truncate">
+                                        {(metadata as CommunityMetadata).inviteUrl}
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
 
             <!-- Metadata section -->
             <div class="px-6 py-5 bg-overlay/50 border-t border-border">
@@ -205,10 +430,9 @@ const typeStyle = typeColors[resource.type as keyof typeof typeColors] || typeCo
 
                 <form
                     method="POST"
-                    action={`/api/resources/${resource.id}`}
+                    action={`/recursos/${resource.id}/delete`}
                     class="flex items-center gap-3"
                 >
-                    <input type="hidden" name="_method" value="DELETE" />
                     <button
                         type="submit"
                         class="btn-press px-4 py-2 text-danger/70 hover:text-danger text-sm font-medium transition-colors duration-150 flex items-center gap-2 hover:bg-danger-bg/30 rounded-lg"

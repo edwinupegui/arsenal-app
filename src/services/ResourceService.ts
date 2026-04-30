@@ -1,10 +1,39 @@
 import { resourceRepository, categoryRepository, type ResourceFilters } from '../repositories';
 import type { Resource, NewResource } from '../db/schema';
-import type { Result, AppError } from '../lib/result';
+import { ok, type Result, type AppError } from '../lib/result';
+import type { PaginatedResult } from '../lib/types';
 
 export class ResourceService {
-  listResources(filters?: ResourceFilters): Result<Resource[], AppError> {
-    return resourceRepository.findAll(filters);
+  listResources(filters?: ResourceFilters, page: number = 1, limit: number = 20): Result<PaginatedResult<Resource>, AppError> {
+    // Calculate offset from page (1-indexed)
+    const offset = (page - 1) * limit;
+
+    // Get count for pagination metadata
+    const countResult = resourceRepository.countResources(filters);
+    if (!countResult.ok) {
+      return countResult;
+    }
+    const total = countResult.value;
+
+    // Get paginated resources
+    const resourcesResult = resourceRepository.findAll(filters, { limit, offset });
+    if (!resourcesResult.ok) {
+      return resourcesResult;
+    }
+
+    const totalPages = Math.ceil(total / limit);
+
+    return ok({
+      data: resourcesResult.value,
+      pagination: {
+        total,
+        totalPages,
+        currentPage: page,
+        limit,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    });
   }
 
   listDeletedResources(): Result<Resource[], AppError> {

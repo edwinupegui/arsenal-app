@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 vi.mock('../repositories', () => ({
   resourceRepository: {
     findAll: vi.fn(),
+    countResources: vi.fn(),
     findDeleted: vi.fn(),
     findById: vi.fn(),
     findByUrl: vi.fn(),
@@ -28,6 +29,8 @@ vi.mock('../db/schema', () => ({
 import { ResourceService } from '../services/ResourceService';
 import { resourceRepository, categoryRepository } from '../repositories';
 import type { Resource, NewResource } from '../db/schema';
+import { paginationSchema, categorySchema } from '../lib/validation';
+import { CATEGORY_ICON_MAP } from '../lib/constants';
 
 // Re-export for tests
 export { resourceRepository, categoryRepository };
@@ -41,7 +44,7 @@ describe('ResourceService', () => {
   });
 
   describe('listResources', () => {
-    it('should return resources when repository succeeds', async () => {
+    it('should return paginated resources when repository succeeds', async () => {
       const mockResources = [{
         id: 1,
         title: 'Test',
@@ -54,18 +57,25 @@ describe('ResourceService', () => {
         createdAt: '2024-01-01',
         deletedAt: null,
       }];
+      vi.mocked(resourceRepository.countResources).mockReturnValue({ ok: true, value: 1 });
       vi.mocked(resourceRepository.findAll).mockReturnValue({ ok: true, value: mockResources });
 
-      const result = service.listResources();
+      const result = service.listResources({}, 1, 20);
 
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.value).toEqual(mockResources);
+        expect(result.value.data).toEqual(mockResources);
+        expect(result.value.pagination.total).toBe(1);
+        expect(result.value.pagination.totalPages).toBe(1);
+        expect(result.value.pagination.currentPage).toBe(1);
+        expect(result.value.pagination.limit).toBe(20);
+        expect(result.value.pagination.hasNext).toBe(false);
+        expect(result.value.pagination.hasPrev).toBe(false);
       }
     });
 
-    it('should return error when repository fails', async () => {
-      vi.mocked(resourceRepository.findAll).mockReturnValue({
+    it('should return error when count fails', async () => {
+      vi.mocked(resourceRepository.countResources).mockReturnValue({
         ok: false,
         error: { type: 'DATABASE_ERROR' as const, message: 'DB error' },
       });
@@ -78,12 +88,48 @@ describe('ResourceService', () => {
       }
     });
 
-    it('should pass filters to repository', async () => {
+    it('should return error when findAll fails', async () => {
+      vi.mocked(resourceRepository.countResources).mockReturnValue({ ok: true, value: 1 });
+      vi.mocked(resourceRepository.findAll).mockReturnValue({
+        ok: false,
+        error: { type: 'DATABASE_ERROR' as const, message: 'DB error' },
+      });
+
+      const result = service.listResources({}, 1, 20);
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error.message).toBe('DB error');
+      }
+    });
+
+    it('should pass filters and pagination to repository', async () => {
+      vi.mocked(resourceRepository.countResources).mockReturnValue({ ok: true, value: 0 });
       vi.mocked(resourceRepository.findAll).mockReturnValue({ ok: true, value: [] });
 
-      service.listResources({ q: 'test', categoryId: 1 });
+      service.listResources({ q: 'test', categoryId: 1 }, 2, 10);
 
-      expect(resourceRepository.findAll).toHaveBeenCalledWith({ q: 'test', categoryId: 1 });
+      expect(resourceRepository.countResources).toHaveBeenCalledWith({ q: 'test', categoryId: 1 });
+      expect(resourceRepository.findAll).toHaveBeenCalledWith(
+        { q: 'test', categoryId: 1 },
+        { limit: 10, offset: 10 }
+      );
+    });
+
+    it('should calculate correct pagination metadata', async () => {
+      vi.mocked(resourceRepository.countResources).mockReturnValue({ ok: true, value: 25 });
+      vi.mocked(resourceRepository.findAll).mockReturnValue({ ok: true, value: [] });
+
+      const result = service.listResources({}, 3, 10);
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.pagination.total).toBe(25);
+        expect(result.value.pagination.totalPages).toBe(3);
+        expect(result.value.pagination.currentPage).toBe(3);
+        expect(result.value.pagination.hasNext).toBe(false);
+        expect(result.value.pagination.hasPrev).toBe(true);
+      }
     });
   });
 
@@ -329,6 +375,116 @@ describe('ResourceService', () => {
       const result = service.listCategories();
 
       expect(result.ok).toBe(true);
+    });
+  });
+
+  describe('paginationSchema', () => {
+    it('should accept valid pagination input', () => {
+      const result = paginationSchema.safeParse({ page: 1, limit: 20 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.page).toBe(1);
+        expect(result.data.limit).toBe(20);
+      }
+    });
+
+    it('should default page to 1 and limit to 20', () => {
+      const result = paginationSchema.safeParse({});
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.page).toBe(1);
+        expect(result.data.limit).toBe(20);
+      }
+    });
+
+    it('should fail when limit exceeds 100', () => {
+      const result = paginationSchema.safeParse({ page: 1, limit: 101 });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error.issues[0];
+        expect(issue.path).toContain('limit');
+        expect(issue.message).toContain('100');
+      }
+    });
+
+    it('should fail when limit is less than 1', () => {
+      const result = paginationSchema.safeParse({ page: 1, limit: 0 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should fail when page is less than 1', () => {
+      const result = paginationSchema.safeParse({ page: 0, limit: 20 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should coerce string values to numbers', () => {
+      const result = paginationSchema.safeParse({ page: '2', limit: '10' });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.page).toBe(2);
+        expect(result.data.limit).toBe(10);
+      }
+    });
+  });
+
+  describe('categoryIconEnum', () => {
+    it('should accept valid icon from CATEGORY_ICON_MAP', () => {
+      const validIcons = Object.keys(CATEGORY_ICON_MAP);
+      for (const icon of validIcons) {
+        const result = categorySchema.safeParse({ name: 'Test Category', icon });
+        expect(result.success).toBe(true);
+      }
+    });
+
+    it('should reject invalid icon value', () => {
+      const result = categorySchema.safeParse({ name: 'Test Category', icon: 'invalid_icon' });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error.issues[0];
+        expect(issue.path).toContain('icon');
+      }
+    });
+  });
+
+  describe('categorySchema', () => {
+    it('should accept valid category with all required fields', () => {
+      const result = categorySchema.safeParse({ name: 'Frontend', icon: 'bookmark' });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.name).toBe('Frontend');
+        expect(result.data.icon).toBe('bookmark');
+      }
+    });
+
+    it('should fail when name is empty', () => {
+      const result = categorySchema.safeParse({ name: '', icon: 'code' });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error.issues.find((i) => i.path.includes('name'));
+        expect(issue).toBeDefined();
+        expect(issue?.message).toContain('required');
+      }
+    });
+
+    it('should fail when name is missing', () => {
+      const result = categorySchema.safeParse({ icon: 'code' });
+      expect(result.success).toBe(false);
+    });
+
+    it('should fail when name exceeds 100 characters', () => {
+      const longName = 'a'.repeat(101);
+      const result = categorySchema.safeParse({ name: longName, icon: 'code' });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error.issues.find((i) => i.path.includes('name'));
+        expect(issue).toBeDefined();
+        expect(issue?.message).toContain('100');
+      }
+    });
+
+    it('should fail when icon is not a valid category icon', () => {
+      const result = categorySchema.safeParse({ name: 'Test', icon: 'not_a_real_icon' });
+      expect(result.success).toBe(false);
     });
   });
 });

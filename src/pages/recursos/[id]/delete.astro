@@ -1,0 +1,23 @@
+---
+import { resourceService } from '../../../lib/resources';
+import { isOk } from '../../../lib/result';
+
+const { id } = Astro.params;
+if (!id || isNaN(parseInt(id))) {
+    return Astro.redirect('/recursos?error=invalid-id');
+}
+const resourceId = parseInt(id);
+
+// Check existence first
+const existingResult = resourceService.getResourceById(resourceId);
+if (!isOk(existingResult) || existingResult.value.deletedAt) {
+    return Astro.redirect('/recursos?error=not-found');
+}
+
+const result = resourceService.softDeleteResource(resourceId);
+if (!isOk(result)) {
+    return Astro.redirect(`/recursos/${resourceId}?error=delete-failed`);
+}
+
+return Astro.redirect('/recursos?deleted=true');
+---

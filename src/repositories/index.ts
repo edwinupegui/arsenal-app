@@ -15,8 +15,13 @@ export type ResourceFilters = {
   sort?: SortOption;
 };
 
+export type FindAllOptions = {
+  limit?: number;
+  offset?: number;
+};
+
 export class ResourceRepository {
-  findAll(filters?: ResourceFilters): Result<Resource[], AppError> {
+  findAll(filters?: ResourceFilters, options?: FindAllOptions): Result<Resource[], AppError> {
     try {
       const conditions = [isNull(resources.deletedAt)];
 
@@ -67,10 +72,62 @@ export class ResourceRepository {
         query = query.orderBy(asc(resources.title));
       }
 
+      // Apply pagination if provided
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+      if (options?.offset) {
+        query = query.offset(options.offset);
+      }
+
       const result = query.all() as Resource[];
       return ok(result);
     } catch (e) {
       return err(databaseError(`Failed to fetch resources: ${e}`));
+    }
+  }
+
+  countResources(filters?: ResourceFilters): Result<number, AppError> {
+    try {
+      const conditions = [isNull(resources.deletedAt)];
+
+      // Text search: use LIKE for now (simpler, works reliably)
+      if (filters?.q && filters.q.trim()) {
+        const searchTerm = `%${filters.q}%`;
+        conditions.push(
+          or(
+            like(resources.title, searchTerm),
+            like(resources.description, searchTerm)
+          )!
+        );
+      }
+
+      // Tag filtering: resources must contain ALL specified tags (AND logic)
+      if (filters?.tags && filters.tags.length > 0) {
+        for (const tag of filters.tags) {
+          conditions.push(like(resources.tags, `%"${tag}"%`));
+        }
+      }
+
+      if (filters?.categoryId) {
+        conditions.push(eq(resources.categoryId, filters.categoryId));
+      }
+      if (filters?.language) {
+        conditions.push(eq(resources.language, filters.language));
+      }
+      if (filters?.type) {
+        conditions.push(eq(resources.type, filters.type));
+      }
+
+      const result = db
+        .select({ count: sql<number>`count(*)` })
+        .from(resources)
+        .where(and(...conditions))
+        .get();
+
+      return ok(result?.count ?? 0);
+    } catch (e) {
+      return err(databaseError(`Failed to count resources: ${e}`));
     }
   }
 

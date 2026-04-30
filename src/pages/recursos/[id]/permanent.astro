@@ -1,0 +1,17 @@
+---
+import { resourceService } from '../../../lib/resources';
+import { isOk } from '../../../lib/result';
+
+const { id } = Astro.params;
+if (!id || isNaN(parseInt(id))) {
+    return Astro.redirect('/recursos/trash?error=invalid-id');
+}
+const resourceId = parseInt(id);
+
+const result = resourceService.permanentDeleteResource(resourceId);
+if (!isOk(result)) {
+    return Astro.redirect('/recursos/trash?error=delete-failed');
+}
+
+return Astro.redirect('/recursos/trash?deleted=true');
+---

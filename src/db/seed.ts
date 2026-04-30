@@ -7,6 +7,11 @@ const CATEGORIES = [
   { id: 3, name: 'Gamedev & Math Analysis', icon: 'gamepad' },
   { id: 4, name: 'Build Projects: UI & Full-Stack', icon: 'layers' },
   { id: 5, name: 'Recursos Adicionales', icon: 'bookmark' },
+  { id: 6, name: 'Testing & Quality', icon: 'check' },
+  { id: 7, name: 'Seguridad & Auth', icon: 'shield' },
+  { id: 8, name: 'Base de Datos & Datos', icon: 'database' },
+  { id: 9, name: 'Career & Soft Skills', icon: 'briefcase' },
+  { id: 10, name: 'Tendencias & Cultura Tech', icon: 'trending' },
 ];
 
 function parseResourcesMd() {

@@ -1,21 +1,45 @@
 import type { APIRoute } from 'astro';
 import { resourceService, parseTags } from '../../../lib/resources';
-import { createResourceSchema, filterSchema } from '../../../lib/validation';
+import { createResourceSchema, filterSchema, paginationSchema } from '../../../lib/validation';
 import { isOk, map } from '../../../lib/result';
 
 export const GET: APIRoute = async ({ url }) => {
   try {
     const rawParams = Object.fromEntries(url.searchParams);
-    const filters = filterSchema.parse(rawParams);
 
-    const result = resourceService.listResources({
-      q: filters.q,
-      categoryId: filters.categoryId,
-      language: filters.language,
-      type: filters.type,
-      sort: filters.sort,
-      tags: filters.tags,
-    });
+    // Parse both filter and pagination params
+    const filterResult = filterSchema.safeParse(rawParams);
+    const paginationResult = paginationSchema.safeParse(rawParams);
+
+    if (!filterResult.success) {
+      return new Response(JSON.stringify({ error: 'Invalid filters', details: filterResult.error }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!paginationResult.success) {
+      return new Response(JSON.stringify({ error: 'Invalid pagination', details: paginationResult.error }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const filters = filterResult.data;
+    const { page, limit } = paginationResult.data;
+
+    const result = resourceService.listResources(
+      {
+        q: filters.q,
+        categoryId: filters.categoryId,
+        language: filters.language,
+        type: filters.type,
+        sort: filters.sort,
+        tags: filters.tags,
+      },
+      page,
+      limit
+    );
 
     if (!isOk(result)) {
       return new Response(JSON.stringify({ error: result.error.message }), {
@@ -24,12 +48,15 @@ export const GET: APIRoute = async ({ url }) => {
       });
     }
 
-    const resources = result.value.map(r => ({
-      ...r,
-      tags: parseTags(r.tags),
-    }));
+    const response = {
+      ...result.value,
+      data: result.value.data.map(r => ({
+        ...r,
+        tags: parseTags(r.tags),
+      })),
+    };
 
-    return new Response(JSON.stringify(resources), {
+    return new Response(JSON.stringify(response), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -63,6 +90,7 @@ export const POST: APIRoute = async ({ request }) => {
       language: parsed.language,
       type: parsed.type,
       categoryId: parsed.categoryId,
+      metadata: parsed.metadata ?? undefined,
     });
 
     if (!isOk(result)) {

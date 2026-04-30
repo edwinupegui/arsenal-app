@@ -1,6 +1,6 @@
 ---
 import type { Category, Resource } from '../db/schema';
-import { LANGUAGE_CONFIG, RESOURCE_TYPE_CONFIG } from '../lib/constants';
+import { LANGUAGE_CONFIG, RESOURCE_TYPE_CONFIG, SUGGESTED_TAGS } from '../lib/constants';
 
 interface Props {
   action: 'create' | 'edit';
@@ -15,6 +15,9 @@ const { action, initialData = {}, categories, errors = {} } = Astro.props;
 const tagsValue = initialData.tags
   ? (typeof initialData.tags === 'string' ? JSON.parse(initialData.tags) : initialData.tags)
   : [];
+
+// Parse metadata for editing
+const metadata = initialData.metadata || null;
 ---
 
 <form
@@ -22,6 +25,9 @@ const tagsValue = initialData.tags
     action={action === 'create' ? '/api/resources' : `/api/resources/${initialData.id}`}
     class="flex flex-col gap-5"
 >
+  {/* Hidden metadata field */}
+  <input type="hidden" id="metadata" name="metadata" value={metadata ? JSON.stringify(metadata) : ''} />
+
   {/* Title */}
   <div class="flex flex-col gap-1.5">
     <label for="title" class="text-sm font-medium text-text">
@@ -88,6 +94,19 @@ const tagsValue = initialData.tags
       placeholder="tutorial, advanced (separados por coma)"
     />
     <span class="text-xs text-text-subtle">Separados por coma</span>
+    <!-- Suggested tags -->
+    <div class="flex flex-wrap gap-1.5 mt-1">
+      <span class="text-xs text-text-subtle">Sugeridos:</span>
+      {SUGGESTED_TAGS.slice(0, 12).map(tag => (
+        <button
+          type="button"
+          class="tag-suggestion text-xs px-2 py-0.5 rounded border border-border text-text-muted hover:text-text hover:border-accent transition-all duration-150"
+          data-tag={tag}
+        >
+          {tag}
+        </button>
+      ))}
+    </div>
   </div>
 
   {/* Row: Language + Type + Category */}
@@ -120,6 +139,7 @@ const tagsValue = initialData.tags
         id="type"
         name="type"
         required
+        data-metadata-toggle="type"
         class="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-text text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted cursor-pointer transition-all duration-200"
       >
         {Object.entries(RESOURCE_TYPE_CONFIG).map(([value, config]) => (
@@ -148,6 +168,212 @@ const tagsValue = initialData.tags
           </option>
         ))}
       </select>
+    </div>
+  </div>
+
+  {/* Metadata Section - Dynamic based on type */}
+  <div id="metadata-section" class="hidden flex flex-col gap-4 p-4 bg-surface-elevated rounded-lg border border-border">
+    <div class="flex items-center justify-between">
+      <h4 class="text-sm font-medium text-text">Metadatos específicos</h4>
+      <span id="metadata-type-label" class="text-xs text-text-subtle"></span>
+    </div>
+
+    {/* Course metadata */}
+    <div id="metadata-course" data-metadata-type="course" class="hidden flex flex-col gap-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_platform" class="text-xs font-medium text-text">Plataforma <span class="text-danger">*</span></label>
+          <input type="text" id="meta_platform" name="meta_platform" data-meta="course"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="Platzi, Udemy, etc." />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_instructor" class="text-xs font-medium text-text">Instructor</label>
+          <input type="text" id="meta_instructor" name="meta_instructor" data-meta="course"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="Nombre del instructor" />
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_duration" class="text-xs font-medium text-text">Duración (minutos)</label>
+          <input type="number" id="meta_duration" name="meta_duration" data-meta="course" min="1"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="480" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_level" class="text-xs font-medium text-text">Nivel</label>
+          <select id="meta_level" name="meta_level" data-meta="course"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted cursor-pointer transition-all duration-200">
+            <option value="">Seleccionar...</option>
+            <option value="beginner">Principiante</option>
+            <option value="intermediate">Intermedio</option>
+            <option value="advanced">Avanzado</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_price" class="text-xs font-medium text-text">Precio (USD)</label>
+          <input type="number" id="meta_price" name="meta_price" data-meta="course" min="0" step="0.01"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="0 = gratis" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_modules" class="text-xs font-medium text-text">Cantidad de módulos</label>
+          <input type="number" id="meta_modules" name="meta_modules" data-meta="course" min="1"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="10" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_syllabus" class="text-xs font-medium text-text">Temario (separado por coma)</label>
+          <input type="text" id="meta_syllabus" name="meta_syllabus" data-meta="course"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="Intro, Módulo 1, Módulo 2" />
+        </div>
+      </div>
+    </div>
+
+    {/* Podcast metadata */}
+    <div id="metadata-podcast" data-metadata-type="podcast" class="hidden flex flex-col gap-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_host" class="text-xs font-medium text-text">Host</label>
+          <input type="text" id="meta_host" name="meta_host" data-meta="podcast"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="Nombre del host" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_episodes" class="text-xs font-medium text-text">Cantidad de episodios</label>
+          <input type="number" id="meta_episodes" name="meta_episodes" data-meta="podcast" min="1"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="150" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_frequency" class="text-xs font-medium text-text">Frecuencia</label>
+          <select id="meta_frequency" name="meta_frequency" data-meta="podcast"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted cursor-pointer transition-all duration-200">
+            <option value="">Seleccionar...</option>
+            <option value="daily">Diaria</option>
+            <option value="weekly">Semanal</option>
+            <option value="biweekly">Quincenal</option>
+            <option value="monthly">Mensual</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_podcast_platform" class="text-xs font-medium text-text">Plataforma</label>
+          <input type="text" id="meta_podcast_platform" name="meta_podcast_platform" data-meta="podcast"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="Spotify, Apple Podcasts" />
+        </div>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label for="meta_rss" class="text-xs font-medium text-text">RSS URL</label>
+        <input type="url" id="meta_rss" name="meta_rss" data-meta="podcast"
+          class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+          placeholder="https://example.com/rss.xml" />
+      </div>
+    </div>
+
+    {/* Newsletter metadata */}
+    <div id="metadata-newsletter" data-metadata-type="newsletter" class="hidden flex flex-col gap-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_author" class="text-xs font-medium text-text">Autor</label>
+          <input type="text" id="meta_author" name="meta_author" data-meta="newsletter"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="Nombre del autor" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_subscriber_count" class="text-xs font-medium text-text">Suscriptores</label>
+          <input type="number" id="meta_subscriber_count" name="meta_subscriber_count" data-meta="newsletter" min="1"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="15000" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_newsletter_frequency" class="text-xs font-medium text-text">Frecuencia</label>
+          <select id="meta_newsletter_frequency" name="meta_newsletter_frequency" data-meta="newsletter"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted cursor-pointer transition-all duration-200">
+            <option value="">Seleccionar...</option>
+            <option value="daily">Diaria</option>
+            <option value="weekly">Semanal</option>
+            <option value="biweekly">Quincenal</option>
+            <option value="monthly">Mensual</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_newsletter_platform" class="text-xs font-medium text-text">Plataforma</label>
+          <input type="text" id="meta_newsletter_platform" name="meta_newsletter_platform" data-meta="newsletter"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="Substack, Mailchimp" />
+        </div>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label for="meta_archive" class="text-xs font-medium text-text">URL del archivo</label>
+        <input type="url" id="meta_archive" name="meta_archive" data-meta="newsletter"
+          class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+          placeholder="https://example.com/archive" />
+      </div>
+    </div>
+
+    {/* Community metadata */}
+    <div id="metadata-community" data-metadata-type="community" class="hidden flex flex-col gap-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_community_platform" class="text-xs font-medium text-text">Plataforma <span class="text-danger">*</span></label>
+          <select id="meta_community_platform" name="meta_community_platform" data-meta="community"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted cursor-pointer transition-all duration-200">
+            <option value="">Seleccionar...</option>
+            <option value="discord">Discord</option>
+            <option value="slack">Slack</option>
+            <option value="telegram">Telegram</option>
+            <option value="forum">Forum</option>
+            <option value="reddit">Reddit</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_member_count" class="text-xs font-medium text-text">Cantidad de miembros</label>
+          <input type="number" id="meta_member_count" name="meta_member_count" data-meta="community" min="1"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="5000" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_invite" class="text-xs font-medium text-text">URL de invitación</label>
+          <input type="url" id="meta_invite" name="meta_invite" data-meta="community"
+            class="w-full px-3 py-2 bg-bg border border-border rounded-lg text-text text-sm placeholder-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-muted transition-all duration-200"
+            placeholder="https://discord.gg/..." />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="meta_is_private" class="text-xs font-medium text-text">Privacidad</label>
+          <div class="flex items-center gap-2 pt-2">
+            <input type="checkbox" id="meta_is_private" name="meta_is_private" data-meta="community" value="true"
+              class="w-4 h-4 rounded border-border bg-bg text-accent focus:ring-accent-muted" />
+            <label for="meta_is_private" class="text-sm text-text-subtle">Comunidad privada</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Type change warning modal */}
+  <div id="type-warning" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div class="bg-surface-elevated border border-border rounded-lg p-6 max-w-sm mx-4">
+      <h4 class="text-base font-medium text-text mb-2">Cambiar tipo de recurso</h4>
+      <p class="text-sm text-text-muted mb-4">Cambiar el tipo borrará los metadatos ingresados. ¿Continuar?</p>
+      <div class="flex gap-3 justify-end">
+        <button type="button" id="type-warning-cancel" class="px-4 py-2 bg-surface hover:bg-overlay border border-border text-text text-sm rounded-lg transition-all duration-150">
+          Cancelar
+        </button>
+        <button type="button" id="type-warning-confirm" class="px-4 py-2 bg-danger hover:bg-danger/80 text-white text-sm rounded-lg transition-all duration-150">
+          Confirmar
+        </button>
+      </div>
     </div>
   </div>
 
@@ -181,3 +407,274 @@ const tagsValue = initialData.tags
     </button>
   </div>
 </form>
+
+<script>
+  const typeSelect = document.getElementById('type') as HTMLSelectElement;
+  const metadataSection = document.getElementById('metadata-section') as HTMLElement;
+  const metadataInput = document.getElementById('metadata') as HTMLInputElement;
+  const typeWarning = document.getElementById('type-warning') as HTMLElement;
+  const typeWarningCancel = document.getElementById('type-warning-cancel') as HTMLButtonElement;
+  const typeWarningConfirm = document.getElementById('type-warning-confirm') as HTMLButtonElement;
+
+  // Course fields
+  const courseFields = ['meta_platform', 'meta_instructor', 'meta_duration', 'meta_level', 'meta_price', 'meta_modules', 'meta_syllabus'];
+  // Podcast fields
+  const podcastFields = ['meta_host', 'meta_episodes', 'meta_frequency', 'meta_podcast_platform', 'meta_rss'];
+  // Newsletter fields
+  const newsletterFields = ['meta_author', 'meta_subscriber_count', 'meta_newsletter_frequency', 'meta_newsletter_platform', 'meta_archive'];
+  // Community fields
+  const communityFields = ['meta_community_platform', 'meta_member_count', 'meta_invite', 'meta_is_private'];
+
+  const metadataContainers = {
+    course: document.getElementById('metadata-course') as HTMLElement,
+    podcast: document.getElementById('metadata-podcast') as HTMLElement,
+    newsletter: document.getElementById('metadata-newsletter') as HTMLElement,
+    community: document.getElementById('metadata-community') as HTMLElement,
+  };
+
+  let previousType = typeSelect.value;
+  let previousMetadata: Record<string, unknown> = {};
+  let targetType: string | null = null;
+
+  // Parse existing metadata on load
+  function parseMetadata() {
+    const val = metadataInput.value;
+    if (val) {
+      try {
+        return JSON.parse(val);
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  }
+
+  // Build metadata object from form fields
+  function buildMetadata(type: string): Record<string, unknown> {
+    const meta: Record<string, unknown> = {};
+
+    if (type === 'course') {
+      const platform = (document.getElementById('meta_platform') as HTMLInputElement)?.value;
+      if (platform) meta.platform = platform;
+      const instructor = (document.getElementById('meta_instructor') as HTMLInputElement)?.value;
+      if (instructor) meta.instructor = instructor;
+      const duration = (document.getElementById('meta_duration') as HTMLInputElement)?.value;
+      if (duration) meta.durationMinutes = parseInt(duration, 10);
+      const level = (document.getElementById('meta_level') as HTMLSelectElement)?.value;
+      if (level) meta.level = level;
+      const price = (document.getElementById('meta_price') as HTMLInputElement)?.value;
+      if (price) meta.priceUsd = parseFloat(price);
+      const modules = (document.getElementById('meta_modules') as HTMLInputElement)?.value;
+      if (modules) meta.modulesCount = parseInt(modules, 10);
+      const syllabus = (document.getElementById('meta_syllabus') as HTMLInputElement)?.value;
+      if (syllabus) meta.syllabus = syllabus.split(',').map(s => s.trim()).filter(Boolean);
+    } else if (type === 'podcast') {
+      const host = (document.getElementById('meta_host') as HTMLInputElement)?.value;
+      if (host) meta.host = host;
+      const episodes = (document.getElementById('meta_episodes') as HTMLInputElement)?.value;
+      if (episodes) meta.episodeCount = parseInt(episodes, 10);
+      const frequency = (document.getElementById('meta_frequency') as HTMLSelectElement)?.value;
+      if (frequency) meta.frequency = frequency;
+      const platform = (document.getElementById('meta_podcast_platform') as HTMLInputElement)?.value;
+      if (platform) meta.platform = platform;
+      const rss = (document.getElementById('meta_rss') as HTMLInputElement)?.value;
+      if (rss) meta.rssUrl = rss;
+    } else if (type === 'newsletter') {
+      const author = (document.getElementById('meta_author') as HTMLInputElement)?.value;
+      if (author) meta.author = author;
+      const subscribers = (document.getElementById('meta_subscriber_count') as HTMLInputElement)?.value;
+      if (subscribers) meta.subscriberCount = parseInt(subscribers, 10);
+      const frequency = (document.getElementById('meta_newsletter_frequency') as HTMLSelectElement)?.value;
+      if (frequency) meta.frequency = frequency;
+      const platform = (document.getElementById('meta_newsletter_platform') as HTMLInputElement)?.value;
+      if (platform) meta.platform = platform;
+      const archive = (document.getElementById('meta_archive') as HTMLInputElement)?.value;
+      if (archive) meta.archiveUrl = archive;
+    } else if (type === 'community') {
+      const platform = (document.getElementById('meta_community_platform') as HTMLSelectElement)?.value;
+      if (platform) meta.platform = platform;
+      const members = (document.getElementById('meta_member_count') as HTMLInputElement)?.value;
+      if (members) meta.memberCount = parseInt(members, 10);
+      const invite = (document.getElementById('meta_invite') as HTMLInputElement)?.value;
+      if (invite) meta.inviteUrl = invite;
+      const isPrivate = (document.getElementById('meta_is_private') as HTMLInputElement)?.checked;
+      if (isPrivate) meta.isPrivate = true;
+    }
+
+    return meta;
+  }
+
+  // Update hidden metadata input
+  function updateMetadataInput() {
+    const type = typeSelect.value;
+    const hasMetadata = ['course', 'podcast', 'newsletter', 'community'].includes(type);
+    if (!hasMetadata) {
+      metadataInput.value = '';
+      return;
+    }
+    const meta = buildMetadata(type);
+    metadataInput.value = JSON.stringify(meta);
+  }
+
+  // Show/hide metadata section based on type
+  function updateMetadataVisibility() {
+    const type = typeSelect.value;
+    const hasMetadata = ['course', 'podcast', 'newsletter', 'community'].includes(type);
+
+    // Hide all metadata containers
+    Object.values(metadataContainers).forEach(container => {
+      container.classList.add('hidden');
+    });
+
+    if (hasMetadata) {
+      metadataSection.classList.remove('hidden');
+      // Show the relevant container
+      const container = metadataContainers[type as keyof typeof metadataContainers];
+      if (container) {
+        container.classList.remove('hidden');
+      }
+      // Update type label
+      const typeLabels: Record<string, string> = {
+        course: 'Curso',
+        podcast: 'Podcast',
+        newsletter: 'Newsletter',
+        community: 'Comunidad',
+      };
+      const labelEl = document.getElementById('metadata-type-label');
+      if (labelEl) labelEl.textContent = typeLabels[type] || '';
+    } else {
+      metadataSection.classList.add('hidden');
+    }
+  }
+
+  // Pre-fill metadata fields from existing data
+  function prefillMetadata() {
+    const metadata = parseMetadata();
+    if (Object.keys(metadata).length === 0) return;
+
+    const type = typeSelect.value;
+    if (type === 'course') {
+      if (metadata.platform) (document.getElementById('meta_platform') as HTMLInputElement).value = metadata.platform as string;
+      if (metadata.instructor) (document.getElementById('meta_instructor') as HTMLInputElement).value = metadata.instructor as string;
+      if (metadata.durationMinutes) (document.getElementById('meta_duration') as HTMLInputElement).value = String(metadata.durationMinutes);
+      if (metadata.level) (document.getElementById('meta_level') as HTMLSelectElement).value = metadata.level as string;
+      if (metadata.priceUsd !== undefined) (document.getElementById('meta_price') as HTMLInputElement).value = String(metadata.priceUsd);
+      if (metadata.modulesCount) (document.getElementById('meta_modules') as HTMLInputElement).value = String(metadata.modulesCount);
+      if (metadata.syllabus) (document.getElementById('meta_syllabus') as HTMLInputElement).value = (metadata.syllabus as string[]).join(', ');
+    } else if (type === 'podcast') {
+      if (metadata.host) (document.getElementById('meta_host') as HTMLInputElement).value = metadata.host as string;
+      if (metadata.episodeCount) (document.getElementById('meta_episodes') as HTMLInputElement).value = String(metadata.episodeCount);
+      if (metadata.frequency) (document.getElementById('meta_frequency') as HTMLSelectElement).value = metadata.frequency as string;
+      if (metadata.platform) (document.getElementById('meta_podcast_platform') as HTMLInputElement).value = metadata.platform as string;
+      if (metadata.rssUrl) (document.getElementById('meta_rss') as HTMLInputElement).value = metadata.rssUrl as string;
+    } else if (type === 'newsletter') {
+      if (metadata.author) (document.getElementById('meta_author') as HTMLInputElement).value = metadata.author as string;
+      if (metadata.subscriberCount) (document.getElementById('meta_subscriber_count') as HTMLInputElement).value = String(metadata.subscriberCount);
+      if (metadata.frequency) (document.getElementById('meta_newsletter_frequency') as HTMLSelectElement).value = metadata.frequency as string;
+      if (metadata.platform) (document.getElementById('meta_newsletter_platform') as HTMLInputElement).value = metadata.platform as string;
+      if (metadata.archiveUrl) (document.getElementById('meta_archive') as HTMLInputElement).value = metadata.archiveUrl as string;
+    } else if (type === 'community') {
+      if (metadata.platform) (document.getElementById('meta_community_platform') as HTMLSelectElement).value = metadata.platform as string;
+      if (metadata.memberCount) (document.getElementById('meta_member_count') as HTMLInputElement).value = String(metadata.memberCount);
+      if (metadata.inviteUrl) (document.getElementById('meta_invite') as HTMLInputElement).value = metadata.inviteUrl as string;
+      if (metadata.isPrivate) (document.getElementById('meta_is_private') as HTMLInputElement).checked = true;
+    }
+
+    previousMetadata = metadata;
+  }
+
+  // Clear all metadata fields
+  function clearMetadataFields() {
+    const fields = [...courseFields, ...podcastFields, ...newsletterFields, ...communityFields];
+    fields.forEach(fieldId => {
+      const el = document.getElementById(fieldId);
+      if (el instanceof HTMLInputElement) {
+        el.value = '';
+      } else if (el instanceof HTMLSelectElement) {
+        el.selectedIndex = 0;
+      } else if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+        el.checked = false;
+      }
+    });
+    const checkbox = document.getElementById('meta_is_private') as HTMLInputElement;
+    if (checkbox) checkbox.checked = false;
+  }
+
+  // Check if metadata has values
+  function hasMetadataValues(): boolean {
+    const metadata = parseMetadata();
+    return Object.keys(metadata).length > 0;
+  }
+
+  // Type change handler
+  typeSelect.addEventListener('change', () => {
+    const newType = typeSelect.value;
+    const oldType = previousType;
+
+    const oldHasMeta = ['course', 'podcast', 'newsletter', 'community'].includes(oldType);
+    const newHasMeta = ['course', 'podcast', 'newsletter', 'community'].includes(newType);
+
+    // If switching FROM a type that has metadata TO a type that also has metadata, warn
+    if (oldHasMeta && newHasMeta && oldType !== newType && hasMetadataValues()) {
+      targetType = newType;
+      typeWarning.classList.remove('hidden');
+      return;
+    }
+
+    // If switching FROM a type with metadata TO a type without metadata, clear
+    if (oldHasMeta && !newHasMeta) {
+      clearMetadataFields();
+      metadataInput.value = '';
+    }
+
+    previousType = newType;
+    updateMetadataVisibility();
+    updateMetadataInput();
+  });
+
+  // Warning cancel
+  typeWarningCancel.addEventListener('click', () => {
+    typeWarning.classList.add('hidden');
+    targetType = null;
+    // Revert to previous type
+    typeSelect.value = previousType;
+  });
+
+  // Warning confirm
+  typeWarningConfirm.addEventListener('click', () => {
+    typeWarning.classList.add('hidden');
+    if (targetType) {
+      previousType = targetType;
+      typeSelect.value = targetType;
+      clearMetadataFields();
+      metadataInput.value = '';
+    }
+    targetType = null;
+    updateMetadataVisibility();
+    updateMetadataInput();
+  });
+
+  // Update metadata on input change
+  document.querySelectorAll('input[data-meta], select[data-meta]').forEach(el => {
+    el.addEventListener('input', updateMetadataInput);
+    el.addEventListener('change', updateMetadataInput);
+  });
+
+  // Initialize on load
+  updateMetadataVisibility();
+  prefillMetadata();
+  updateMetadataInput();
+
+  // Tag suggestion click handler
+  const tagsInput = document.getElementById('tags') as HTMLInputElement;
+  document.querySelectorAll('.tag-suggestion').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = (btn as HTMLElement).dataset.tag || '';
+      const current = tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [];
+      if (!current.includes(tag)) {
+        current.push(tag);
+        tagsInput.value = current.join(', ');
+      }
+    });
+  });
+</script>

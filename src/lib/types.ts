@@ -8,6 +8,22 @@ export type { Resource, NewResource, Category };
 export type { SortOption };
 export type ResourceFilters = RepoResourceFilters;
 
+// Re-export CategoryIcon from constants for centralized typing
+export type { CategoryIcon } from './constants';
+
+// Paginated result wrapper for list operations
+export interface PaginatedResult<T> {
+  data: T[];
+  pagination: {
+    total: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
 // API response types
 export interface ApiResponse<T> {
   success: boolean;

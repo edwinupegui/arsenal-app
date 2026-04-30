@@ -15,22 +15,31 @@ const type = searchParams.get("type") || undefined;
 const sort = (searchParams.get("sort") || 'alpha') as SortOption;
 const tags = searchParams.getAll("tags").filter(t => t.length > 0) || undefined;
 
+// Pagination params
+const page = searchParams.get("page") ? parseInt(searchParams.get("page")!) : 1;
+const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 20;
+
 // Get all available tags for the filter UI
 const tagsResult = getAllTags();
 const allTags = tagsResult.ok ? tagsResult.value : [];
 
-const resourcesResult = listResources({
-    q: q || undefined,
-    categoryId,
-    language,
-    type,
-    sort,
-    tags,
-});
+const resourcesResult = listResources(
+    {
+        q: q || undefined,
+        categoryId,
+        language,
+        type,
+        sort,
+        tags,
+    },
+    page,
+    limit
+);
 const categoriesResult = listCategories();
 
 // Fallback to empty arrays if something went wrong
-const resources = resourcesResult.ok ? resourcesResult.value : [];
+const resources = resourcesResult.ok ? resourcesResult.value.data : [];
+const pagination = resourcesResult.ok ? resourcesResult.value.pagination : null;
 const categories = categoriesResult.ok ? categoriesResult.value : [];
 
 const resourcesWithCategory = resources.map((r) => {
@@ -60,7 +69,9 @@ const resourcesWithCategory = resources.map((r) => {
                     Recursos
                 </h1>
                 <p class="text-text-muted text-sm mt-1">
-                    {resources.length} recurso{resources.length !== 1 ? 's' : ''} disponible{resources.length !== 1 ? 's' : ''}
+                    {pagination
+                        ? `${pagination.total} recurso${pagination.total !== 1 ? 's' : ''} — página ${pagination.currentPage} de ${pagination.totalPages}`
+                        : `${resources.length} recurso${resources.length !== 1 ? 's' : ''} disponible${resources.length !== 1 ? 's' : ''}`}
                 </p>
             </div>
         </div>
@@ -123,6 +134,7 @@ const resourcesWithCategory = resources.map((r) => {
                     )}
                 </div>
             ) : (
+                <>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-enter">
                     {resourcesWithCategory.map(({ resource, category }, index) => (
                         <div style={`animation-delay: ${Math.min(index * 60, 600)}ms`}>
@@ -136,6 +148,48 @@ const resourcesWithCategory = resources.map((r) => {
                         </div>
                     ))}
                 </div>
+
+                {/* Pagination Controls */}
+                {pagination && pagination.totalPages > 1 && (
+                    <div class="flex items-center justify-center gap-4 mt-8">
+                        <a
+                            href={`/recursos?${new URLSearchParams({
+                                ...Object.fromEntries(searchParams),
+                                page: String(page - 1),
+                            }).toString()}`}
+                            class:list={[
+                                "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                                pagination.hasPrev
+                                    ? "bg-surface hover:bg-surface-hover border border-border text-text"
+                                    : "bg-surface/50 border border-border/50 text-text-muted cursor-not-allowed opacity-50"
+                            ]}
+                            aria-disabled={!pagination.hasPrev}
+                            tabindex={pagination.hasPrev ? undefined : -1}
+                        >
+                            ← Anterior
+                        </a>
+                        <span class="text-text-muted text-sm">
+                            Página {pagination.currentPage} de {pagination.totalPages}
+                        </span>
+                        <a
+                            href={`/recursos?${new URLSearchParams({
+                                ...Object.fromEntries(searchParams),
+                                page: String(page + 1),
+                            }).toString()}`}
+                            class:list={[
+                                "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                                pagination.hasNext
+                                    ? "bg-surface hover:bg-surface-hover border border-border text-text"
+                                    : "bg-surface/50 border border-border/50 text-text-muted cursor-not-allowed opacity-50"
+                            ]}
+                            aria-disabled={!pagination.hasNext}
+                            tabindex={pagination.hasNext ? undefined : -1}
+                        >
+                            Siguiente →
+                        </a>
+                    </div>
+                )}
+                </>
             )
         }
     </div>

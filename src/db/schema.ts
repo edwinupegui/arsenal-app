@@ -15,6 +15,7 @@ export const resources = sqliteTable('resources', {
   language: text('language').notNull(),
   type: text('type').notNull(),
   categoryId: integer('category_id').notNull().references(() => categories.id),
+  metadata: text('metadata', { mode: 'json' }).$type<Record<string, unknown>>(),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   deletedAt: text('deleted_at'),
 }, (table) => ({

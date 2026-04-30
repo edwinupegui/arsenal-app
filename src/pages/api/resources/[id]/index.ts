@@ -77,18 +77,16 @@ export const POST: APIRoute = async ({ params, request, url }) => {
   if (method.toUpperCase() === 'DELETE') {
     const result = resourceService.softDeleteResource(id);
     if (!isOk(result)) {
-      return new Response(JSON.stringify({ error: result.error.message }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
+      return new Response(null, {
+        status: 302,
+        headers: { Location: '/recursos?error=delete-failed' }
       });
     }
-    
-    // Redirect when coming from HTML form
+
+    // Always redirect when called from HTML form
     return new Response(null, {
       status: 303,
-      headers: {
-        'Location': '/recursos?deleted=true'
-      }
+      headers: { Location: '/recursos?deleted=true' }
     });
   }
 
