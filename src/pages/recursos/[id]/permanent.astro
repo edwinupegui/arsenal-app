@@ -1,6 +1,7 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import ConfirmDialog from "../../../components/ConfirmDialog.astro";
+import ErrorModal from "../../../components/ErrorModal.astro";
 import {
     getResourceById,
     parseTags,
@@ -78,6 +79,8 @@ const resourceData = {
             confirmLabel="Eliminar"
             cancelLabel="Cancelar"
         />
+
+        <ErrorModal id="permanent-error-modal" />
     </div>
 </Layout>
 
@@ -97,7 +100,7 @@ const resourceData = {
             window.location.href = '/recursos/trash?deleted=true';
         } else {
             const data = await response.json();
-            alert(data.error || 'Error al eliminar');
+            (window as any).showError(data.error || 'Error al eliminar');
         }
     });
 </script>

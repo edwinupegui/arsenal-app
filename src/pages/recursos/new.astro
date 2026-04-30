@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 import ResourceForm from "../../components/ResourceForm.astro";
 import ConfirmDialog from "../../components/ConfirmDialog.astro";
+import ErrorModal from "../../components/ErrorModal.astro";
 import { listCategories } from "../../lib/resources";
 
 const categoriesResult = listCategories();
@@ -45,6 +46,8 @@ const categories = categoriesResult.ok ? categoriesResult.value : [];
             confirmLabel="Crear"
             cancelLabel="Cancelar"
         />
+
+        <ErrorModal id="error-modal" />
     </div>
 </Layout>
 
@@ -91,7 +94,7 @@ const categories = categoriesResult.ok ? categoriesResult.value : [];
             window.location.href = '/recursos?created=true';
         } else {
             const result = await response.json();
-            alert(result.error || 'Error al crear');
+            (window as any).showError(result.error || 'Error al crear');
         }
     });
 </script>

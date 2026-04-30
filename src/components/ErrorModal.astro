@@ -1,0 +1,66 @@
+---
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+---
+
+<dialog
+  id={id}
+  class="bg-surface border border-border rounded-xl p-6 w-full max-w-md animate-scale-in fixed inset-0 m-auto z-50"
+>
+  <div class="flex flex-col gap-4">
+    <div class="flex items-start gap-3">
+      <div class="w-10 h-10 rounded-full bg-danger-bg flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="font-semibold text-text text-lg">Error</h3>
+        <p id={`${id}-message`} class="text-text-muted text-sm mt-1"></p>
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <button
+        type="button"
+        onclick={`document.getElementById('${id}').close()`}
+        class="btn-press px-4 py-2 bg-surface-hover hover:bg-border border border-border text-text text-sm font-medium rounded-lg transition-colors"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  dialog {
+    position: fixed;
+    inset: 0;
+    width: fit-content;
+    height: fit-content;
+    margin: auto;
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
+
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+</style>
+
+<script define:vars={{ id }}>
+  // Global function to show error modal
+  (window as any).showError = (message: string) => {
+    const modal = document.getElementById(id);
+    const messageEl = document.getElementById(`${id}-message`);
+    if (modal && messageEl) {
+      messageEl.textContent = message;
+      (modal as HTMLDialogElement).showModal();
+    }
+  };
+</script>

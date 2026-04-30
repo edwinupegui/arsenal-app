@@ -2,6 +2,7 @@
 import Layout from "../../../layouts/Layout.astro";
 import ResourceForm from "../../../components/ResourceForm.astro";
 import ConfirmDialog from "../../../components/ConfirmDialog.astro";
+import ErrorModal from "../../../components/ErrorModal.astro";
 import {
     getResourceById,
     listCategories,
@@ -73,6 +74,8 @@ const resourceData = {
             confirmLabel="Guardar"
             cancelLabel="Cancelar"
         />
+
+        <ErrorModal id="edit-error-modal" />
     </div>
 </Layout>
 
@@ -119,7 +122,7 @@ const resourceData = {
             window.location.href = '/recursos?updated=true';
         } else {
             const result = await response.json();
-            alert(result.error || 'Error al guardar');
+            (window as any).showError(result.error || 'Error al guardar');
         }
     });
 </script>
