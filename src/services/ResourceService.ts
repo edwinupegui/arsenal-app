@@ -1,4 +1,4 @@
-import { resourceRepository, categoryRepository, type ResourceFilters } from '../repositories';
+import { ResourceRepository, CategoryRepository, type ResourceFilters } from '../repositories';
 import type { Resource, NewResource, Category } from '../db/schema';
 import { ok, type Result, type AppError } from '../lib/result';
 import type { PaginatedResult } from '../lib/types';
@@ -6,20 +6,17 @@ import type { PaginatedResult } from '../lib/types';
 /**
  * ResourceService - Business logic layer for resource management.
  *
- * Supports optional dependency injection for testability:
- * - Default: uses module-level singleton repositories
+ * Uses dependency injection for testability:
  * - Constructor injection: pass custom repositories for testing
+ * - Default: creates new instances with default DB connection
  */
 export class ResourceService {
-  private resourceRepo: typeof resourceRepository;
-  private categoryRepo: typeof categoryRepository;
+  private resourceRepo: ResourceRepository;
+  private categoryRepo: CategoryRepository;
 
-  constructor(
-    resourceRepo: typeof resourceRepository = resourceRepository,
-    categoryRepo: typeof categoryRepository = categoryRepository
-  ) {
-    this.resourceRepo = resourceRepo;
-    this.categoryRepo = categoryRepo;
+  constructor(resourceRepo?: ResourceRepository, categoryRepo?: CategoryRepository) {
+    this.resourceRepo = resourceRepo ?? new ResourceRepository();
+    this.categoryRepo = categoryRepo ?? new CategoryRepository();
   }
 
   listResources(filters?: ResourceFilters, page: number = 1, limit: number = 20): Result<PaginatedResult<Resource>, AppError> {
@@ -94,7 +91,7 @@ export class ResourceService {
     return this.categoryRepo.findAll();
   }
 
-  getCategoryById(id: number): Result<Category | null, AppError> {
+  getCategoryById(id: number): Result<Category, AppError> {
     return this.categoryRepo.findById(id);
   }
 
@@ -103,4 +100,5 @@ export class ResourceService {
   }
 }
 
+// @deprecated Use constructor injection for testability
 export const resourceService = new ResourceService();

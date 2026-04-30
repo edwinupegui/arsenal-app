@@ -3,7 +3,9 @@ import Layout from "../../layouts/Layout.astro";
 import ResourceCard from "../../components/ResourceCard.astro";
 import SearchInput from "../../components/SearchInput.astro";
 import FilterBar from "../../components/FilterBar.astro";
-import { listResources, listCategories, getAllTags, parseTags, type SortOption } from "../../lib/resources";
+import { parseTags, type SortOption } from "../../lib/resources";
+import { ResourceRepository, CategoryRepository } from "../../repositories";
+import { isOk } from "../../lib/result";
 
 const { searchParams } = Astro.url;
 const q = searchParams.get("q") || "";
@@ -19,11 +21,22 @@ const tags = searchParams.getAll("tags").filter(t => t.length > 0) || undefined;
 const page = searchParams.get("page") ? parseInt(searchParams.get("page")!) : 1;
 const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 20;
 
+// Use db from locals (injected by middleware)
+const db = Astro.locals.db;
+
+// Create repositories with injected DB
+const resourceRepo = new ResourceRepository(db);
+const categoryRepo = new CategoryRepository(db);
+
 // Get all available tags for the filter UI
-const tagsResult = getAllTags();
+const tagsResult = resourceRepo.getAllTags();
 const allTags = tagsResult.ok ? tagsResult.value : [];
 
-const resourcesResult = listResources(
+// Pagination offset
+const offset = (page - 1) * limit;
+
+// Fetch resources with category in a single JOIN query (avoids N+1)
+const resourcesResult = resourceRepo.findAllWithCategory(
     {
         q: q || undefined,
         categoryId,
@@ -32,21 +45,41 @@ const resourcesResult = listResources(
         sort,
         tags,
     },
-    page,
-    limit
+    { limit, offset }
 );
-const categoriesResult = listCategories();
+
+// Fetch categories separately for filter UI
+const categoriesResult = categoryRepo.findAll();
 
 // Fallback to empty arrays if something went wrong
-const resources = resourcesResult.ok ? resourcesResult.value.data : [];
-const pagination = resourcesResult.ok ? resourcesResult.value.pagination : null;
+const resources = resourcesResult.ok ? resourcesResult.value : [];
 const categories = categoriesResult.ok ? categoriesResult.value : [];
 
+// Calculate pagination info
+const totalResult = resourcesResult.ok ? resourceRepo.countResources({
+    q: q || undefined,
+    categoryId,
+    language,
+    type,
+    sort,
+    tags,
+}) : null;
+const total = totalResult?.ok ? totalResult.value : 0;
+const totalPages = Math.ceil(total / limit);
+const pagination = {
+    total,
+    totalPages,
+    currentPage: page,
+    limit,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
+};
+
+// Use pre-joined category data from findAllWithCategory
 const resourcesWithCategory = resources.map((r) => {
-    const category = categories.find((c) => c.id === r.categoryId);
     return {
         resource: r,
-        category: category || {
+        category: r.category || {
             id: 0,
             name: "Uncategorized",
             icon: "bookmark",

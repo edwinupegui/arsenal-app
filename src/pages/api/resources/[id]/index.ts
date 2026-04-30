@@ -64,8 +64,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    // Log unexpected errors and return generic 500
-    console.error(`Unexpected error updating resource ${id}:`, error);
+    // Return generic error without logging sensitive info
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

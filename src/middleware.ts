@@ -1,4 +1,5 @@
 import type { MiddlewareHandler } from 'astro';
+import { createDb } from './db/index';
 
 // Protected HTTP methods (require authentication)
 const PROTECTED_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
@@ -21,6 +22,9 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
   const { request } = context;
   const url = new URL(request.url);
 
+  // Attach DB to locals for use in route handlers
+  context.locals.db = createDb();
+
   // Only protect API routes
   if (!url.pathname.startsWith('/api/')) {
     return next();
@@ -39,7 +43,6 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
 
   // If no credentials configured, deny all mutations for security
   if (!adminUser || !adminPassword) {
-    console.error('[Auth] Admin credentials not configured. Set ADMIN_USER and ADMIN_PASSWORD in .env');
     return new Response('Server configuration error', { status: 500 });
   }
 

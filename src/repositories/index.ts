@@ -1,5 +1,5 @@
 import { eq, and, like, isNull, isNotNull, or, asc, desc, sql } from 'drizzle-orm';
-import { db } from '../db/index';
+import { createDb, type DbInstance } from '../db/index';
 import { resources, categories, type Resource, type NewResource, type Category } from '../db/schema';
 import { ok, err, notFoundError, duplicateError, databaseError } from '../lib/result';
 import type { Result, AppError } from '../lib/result';
@@ -21,6 +21,12 @@ export type FindAllOptions = {
 };
 
 export class ResourceRepository {
+  private db: DbInstance;
+
+  constructor(db?: DbInstance) {
+    this.db = db ?? createDb();
+  }
+
   /**
    * Build SQL conditions from filters (shared by findAll and countResources)
    */
@@ -65,7 +71,7 @@ export class ResourceRepository {
       const conditions = this.buildConditions(filters);
 
       // Build query with conditions
-      let query = db
+      let query = this.db
         .select()
         .from(resources)
         .where(and(...conditions));
@@ -102,7 +108,7 @@ export class ResourceRepository {
     try {
       const conditions = this.buildConditions(filters);
 
-      const result = db
+      const result = this.db
         .select({ count: sql<number>`count(*)` })
         .from(resources)
         .where(and(...conditions))
@@ -116,7 +122,7 @@ export class ResourceRepository {
 
   findDeleted(): Result<Resource[], AppError> {
     try {
-      const result = db
+      const result = this.db
         .select()
         .from(resources)
         .where(isNotNull(resources.deletedAt))
@@ -131,7 +137,7 @@ export class ResourceRepository {
 
   findById(id: number): Result<Resource, AppError> {
     try {
-      const result = db
+      const result = this.db
         .select()
         .from(resources)
         .where(eq(resources.id, id))
@@ -149,7 +155,7 @@ export class ResourceRepository {
 
   findByUrl(url: string): Result<Resource, AppError> {
     try {
-      const result = db
+      const result = this.db
         .select()
         .from(resources)
         .where(eq(resources.url, url))
@@ -168,7 +174,7 @@ export class ResourceRepository {
   create(data: NewResource): Result<Resource, AppError> {
     try {
       const now = new Date().toISOString();
-      const result = db.insert(resources).values({
+      const result = this.db.insert(resources).values({
         ...data,
         createdAt: now,
       }).returning().all();
@@ -187,7 +193,7 @@ export class ResourceRepository {
 
   update(id: number, data: Partial<NewResource>): Result<Resource, AppError> {
     try {
-      const existing = db
+      const existing = this.db
         .select()
         .from(resources)
         .where(eq(resources.id, id))
@@ -198,7 +204,7 @@ export class ResourceRepository {
         return err(notFoundError('Resource', id));
       }
 
-      const result = db
+      const result = this.db
         .update(resources)
         .set(data)
         .where(eq(resources.id, id))
@@ -219,7 +225,7 @@ export class ResourceRepository {
 
   softDelete(id: number): Result<boolean, AppError> {
     try {
-      const existing = db
+      const existing = this.db
         .select()
         .from(resources)
         .where(eq(resources.id, id))
@@ -234,7 +240,7 @@ export class ResourceRepository {
       }
 
       const now = new Date().toISOString();
-      db.update(resources).set({ deletedAt: now }).where(eq(resources.id, id)).run();
+      this.db.update(resources).set({ deletedAt: now }).where(eq(resources.id, id)).run();
       return ok(true);
     } catch (e) {
       return err(databaseError(`Failed to soft delete resource ${id}: ${e}`));
@@ -243,7 +249,7 @@ export class ResourceRepository {
 
   restore(id: number): Result<boolean, AppError> {
     try {
-      const existing = db
+      const existing = this.db
         .select()
         .from(resources)
         .where(eq(resources.id, id))
@@ -257,7 +263,7 @@ export class ResourceRepository {
         return ok(false); // Not deleted
       }
 
-      db.update(resources).set({ deletedAt: null }).where(eq(resources.id, id)).run();
+      this.db.update(resources).set({ deletedAt: null }).where(eq(resources.id, id)).run();
       return ok(true);
     } catch (e) {
       return err(databaseError(`Failed to restore resource ${id}: ${e}`));
@@ -266,7 +272,7 @@ export class ResourceRepository {
 
   permanentDelete(id: number): Result<boolean, AppError> {
     try {
-      const existing = db
+      const existing = this.db
         .select()
         .from(resources)
         .where(eq(resources.id, id))
@@ -280,7 +286,7 @@ export class ResourceRepository {
         return err(databaseError('Cannot permanently delete a non-deleted resource'));
       }
 
-      db.delete(resources).where(eq(resources.id, id)).run();
+      this.db.delete(resources).where(eq(resources.id, id)).run();
       return ok(true);
     } catch (e) {
       return err(databaseError(`Failed to permanently delete resource ${id}: ${e}`));
@@ -290,7 +296,7 @@ export class ResourceRepository {
   getAllTags(): Result<{tag: string; count: number}[], AppError> {
     try {
       // Use SQLite JSON aggregation for performance - only fetches tag values, not full rows
-      const result = db
+      const result = this.db
         .select({ tag: sql<string>`value`, count: sql<number>`count(*)` })
         .from(resources, sql`json_each(resources.tags)`)
         .where(isNull(resources.deletedAt))
@@ -318,7 +324,7 @@ export class ResourceRepository {
         conditions.push(eq(resources.categoryId, categoryId));
       }
 
-      const result = db
+      const result = this.db
         .select()
         .from(resources)
         .where(and(...conditions))
@@ -330,12 +336,69 @@ export class ResourceRepository {
       return err(databaseError(`Failed to search resources: ${e}`));
     }
   }
+
+  /**
+   * Find all resources with their category data using a JOIN.
+   * Avoids N+1 queries when displaying resources with category info.
+   */
+  findAllWithCategory(filters?: ResourceFilters, options?: FindAllOptions): Result<Array<Resource & { category: Category }>, AppError> {
+    try {
+      const conditions = this.buildConditions(filters);
+
+      // Build query with JOIN to get category data
+      let query = this.db
+        .select({
+          resource: resources,
+          category: categories,
+        })
+        .from(resources)
+        .innerJoin(categories, eq(resources.categoryId, categories.id))
+        .where(and(...conditions));
+
+      // Apply sorting
+      const sort = filters?.sort ?? 'alpha';
+      if (sort === 'newest') {
+        query = query.orderBy(desc(resources.createdAt));
+      } else if (sort === 'oldest') {
+        query = query.orderBy(asc(resources.createdAt));
+      } else if (sort === 'relevance' && filters?.q) {
+        query = query.orderBy(asc(resources.title));
+      } else {
+        query = query.orderBy(asc(resources.title));
+      }
+
+      // Apply pagination if provided
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+      if (options?.offset) {
+        query = query.offset(options.offset);
+      }
+
+      const result = query.all();
+      // Flatten the joined result
+      const flattened = result.map(row => ({
+        ...row.resource,
+        category: row.category,
+      })) as Array<Resource & { category: Category }>;
+
+      return ok(flattened);
+    } catch (e) {
+      return err(databaseError(`Failed to fetch resources with category: ${e}`));
+    }
+  }
 }
 
 export class CategoryRepository {
+  private db: DbInstance;
+
+  constructor(db?: DbInstance) {
+    this.db = db ?? createDb();
+  }
+
   findAll(): Result<Category[], AppError> {
     try {
-      const result = db.select().from(categories).orderBy(asc(categories.id)).all() as Category[];
+      const result = this.db.select().from(categories).orderBy(asc(categories.id)).all() as Category[];
       return ok(result);
     } catch (e) {
       return err(databaseError(`Failed to fetch categories: ${e}`));
@@ -344,7 +407,7 @@ export class CategoryRepository {
 
   findById(id: number): Result<Category, AppError> {
     try {
-      const result = db
+      const result = this.db
         .select()
         .from(categories)
         .where(eq(categories.id, id))
@@ -361,6 +424,7 @@ export class CategoryRepository {
   }
 }
 
-// Singleton instances for convenience
+// Default instances for backward compatibility
+// @deprecated Inject dependencies for testability
 export const resourceRepository = new ResourceRepository();
 export const categoryRepository = new CategoryRepository();

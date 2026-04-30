@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// Mock the repositories before importing the service
-vi.mock('../repositories', () => ({
-  resourceRepository: {
+// Use vi.hoisted to define mocks that need to be referenced before hoisting
+const { mockResourceRepoInstance, mockCategoryRepoInstance } = vi.hoisted(() => {
+  const mockResourceRepoInstance = {
     findAll: vi.fn(),
     countResources: vi.fn(),
     findDeleted: vi.fn(),
@@ -13,13 +13,36 @@ vi.mock('../repositories', () => ({
     softDelete: vi.fn(),
     restore: vi.fn(),
     permanentDelete: vi.fn(),
+    getAllTags: vi.fn(),
     search: vi.fn(),
-  },
-  categoryRepository: {
+    findAllWithCategory: vi.fn(),
+  };
+
+  const mockCategoryRepoInstance = {
     findAll: vi.fn(),
     findById: vi.fn(),
-  },
-}));
+  };
+
+  return { mockResourceRepoInstance, mockCategoryRepoInstance };
+});
+
+// Mock the repositories module
+vi.mock('../repositories', () => {
+  // Mock the class constructors to return our mock instances
+  function MockResourceRepository() {
+    return mockResourceRepoInstance;
+  }
+  function MockCategoryRepository() {
+    return mockCategoryRepoInstance;
+  }
+
+  return {
+    ResourceRepository: MockResourceRepository,
+    CategoryRepository: MockCategoryRepository,
+    resourceRepository: mockResourceRepoInstance,
+    categoryRepository: mockCategoryRepoInstance,
+  };
+});
 
 // Mock schema types
 vi.mock('../db/schema', () => ({
@@ -27,7 +50,7 @@ vi.mock('../db/schema', () => ({
 }));
 
 import { ResourceService } from '../services/ResourceService';
-import { resourceRepository, categoryRepository } from '../repositories';
+import { ResourceRepository, CategoryRepository, resourceRepository, categoryRepository } from '../repositories';
 import type { Resource, NewResource } from '../db/schema';
 import { paginationSchema, categorySchema } from '../lib/validation';
 import { CATEGORY_ICON_MAP } from '../lib/constants';
@@ -40,7 +63,8 @@ describe('ResourceService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new ResourceService();
+    // Reset the mock return values for each test
+    service = new ResourceService(resourceRepository, categoryRepository);
   });
 
   describe('listResources', () => {
@@ -54,6 +78,7 @@ describe('ResourceService', () => {
         language: 'EN',
         type: 'article',
         categoryId: 1,
+        metadata: null,
         createdAt: '2024-01-01',
         deletedAt: null,
       }];
@@ -144,6 +169,7 @@ describe('ResourceService', () => {
         language: 'EN',
         type: 'article',
         categoryId: 1,
+        metadata: null,
         createdAt: '2024-01-01',
         deletedAt: null,
       };
@@ -192,6 +218,7 @@ describe('ResourceService', () => {
         language: newResource.language,
         type: newResource.type,
         categoryId: newResource.categoryId,
+        metadata: null,
         createdAt: '2024-01-01',
         deletedAt: null,
       };
@@ -241,6 +268,7 @@ describe('ResourceService', () => {
         language: 'EN',
         type: 'article',
         categoryId: 1,
+        metadata: null,
         createdAt: '2024-01-01',
         deletedAt: null,
       };
@@ -341,6 +369,7 @@ describe('ResourceService', () => {
         language: 'EN',
         type: 'article',
         categoryId: 1,
+        metadata: null,
         createdAt: '2024-01-01',
         deletedAt: null,
       }];
