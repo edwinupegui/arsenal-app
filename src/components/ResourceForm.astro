@@ -21,8 +21,9 @@ const metadata = initialData.metadata || null;
 ---
 
 <form
+    id="resource-form"
     method="POST"
-    action={action === 'create' ? '/api/resources' : `/api/resources/${initialData.id}`}
+    action={action === 'create' ? '/recursos/new' : `/recursos/${initialData.id}/edit`}
     class="flex flex-col gap-5"
 >
   {/* Hidden metadata field */}
@@ -677,4 +678,17 @@ const metadata = initialData.metadata || null;
       }
     });
   });
+
+  // Edit confirmation modal handler - intercept form submit
+  const form = document.getElementById('resource-form') as HTMLFormElement;
+
+  if (form && action === 'edit') {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const confirmed = await (window as any).showConfirmDialog('edit-confirm');
+      if (confirmed) {
+        form.submit();
+      }
+    });
+  }
 </script>

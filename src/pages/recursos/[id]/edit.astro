@@ -1,11 +1,14 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import ResourceForm from "../../../components/ResourceForm.astro";
+import ConfirmDialog from "../../../components/ConfirmDialog.astro";
 import {
     getResourceById,
     listCategories,
     parseTags,
+    resourceService,
 } from "../../../lib/resources";
+import { isOk } from "../../../lib/result";
 
 const { id } = Astro.params;
 if (!id || isNaN(parseInt(id))) {
@@ -47,29 +50,21 @@ if (Astro.request.method === "POST") {
                   .filter(Boolean)
             : [];
 
-        const response = await fetch(
-            `${Astro.url.origin}/api/resources/${resourceId}`,
-            {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title,
-                    url,
-                    description,
-                    tags,
-                    language,
-                    type,
-                    categoryId,
-                }),
-            },
-        );
+        const result = resourceService.updateResource(resourceId, {
+            title,
+            url,
+            description,
+            tags,
+            language,
+            type,
+            categoryId,
+        });
 
-        if (response.ok) {
-            return Astro.redirect(`/recursos/${resourceId}?updated=true`);
+        if (isOk(result)) {
+            return Astro.redirect(`/recursos?updated=true`);
         } else {
-            const error = await response.json();
             return Astro.redirect(
-                `/recursos/${resourceId}/edit?error=${encodeURIComponent(error.error || "Error al actualizar")}`,
+                `/recursos/${resourceId}/edit?error=${encodeURIComponent(result.error.message)}`,
             );
         }
     } catch (e) {
@@ -115,5 +110,13 @@ const resourceData = {
                 categories={categories}
             />
         </div>
+
+        <ConfirmDialog
+            id="edit-confirm"
+            title="Guardar cambios"
+            message="¿Estás seguro de que quieres guardar los cambios?"
+            confirmLabel="Guardar"
+            cancelLabel="Cancelar"
+        />
     </div>
 </Layout>

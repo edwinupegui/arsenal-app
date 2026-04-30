@@ -18,7 +18,7 @@ const {
 
 <dialog
     id={id}
-    class="bg-surface border border-border rounded-xl p-6 w-full max-w-md animate-scale-in"
+    class="bg-surface border border-border rounded-xl p-6 w-full max-w-md animate-scale-in fixed inset-0 m-auto"
 >
     <div class="flex flex-col gap-4">
         <div class="flex items-start gap-3">
@@ -56,13 +56,31 @@ const {
             <button
                 type="button"
                 id={`${id}-confirm`}
-                class="btn-press px-4 py-2 bg-danger hover:bg-danger/80 text-danger-bg text-sm font-medium rounded-lg transition-colors"
+                class="btn-press px-4 py-2 bg-danger hover:bg-danger/80 text-white text-sm font-medium rounded-lg transition-colors"
             >
                 {confirmLabel}
             </button>
         </div>
     </div>
 </dialog>
+
+<style>
+    dialog {
+        position: fixed;
+        inset: 0;
+        width: fit-content;
+        height: fit-content;
+        margin: auto;
+        border: none;
+        background: transparent;
+        padding: 0;
+    }
+
+    dialog::backdrop {
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+</style>
 
 <script define:vars={{ id }}>
     const dialog = document.getElementById(id);

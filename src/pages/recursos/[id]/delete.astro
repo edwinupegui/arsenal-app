@@ -16,7 +16,7 @@ if (!isOk(existingResult) || existingResult.value.deletedAt) {
 
 const result = resourceService.softDeleteResource(resourceId);
 if (!isOk(result)) {
-    return Astro.redirect(`/recursos/${resourceId}?error=delete-failed`);
+    return Astro.redirect('/recursos?error=delete-failed');
 }
 
 return Astro.redirect('/recursos?deleted=true');

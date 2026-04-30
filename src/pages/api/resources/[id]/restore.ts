@@ -5,23 +5,23 @@ import { isOk } from '../../../../lib/result';
 export const POST: APIRoute = async ({ params }) => {
   const idParam = params.id;
   if (!idParam || isNaN(parseInt(idParam))) {
-    return new Response(null, {
-      status: 302,
-      headers: { Location: '/recursos/trash?error=invalid-id' },
+    return new Response(JSON.stringify({ error: 'Invalid ID' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
   const id = parseInt(idParam);
 
   const result = resourceService.restoreResource(id);
   if (!isOk(result)) {
-    return new Response(null, {
-      status: 302,
-      headers: { Location: '/recursos/trash?error=restore-failed' },
+    return new Response(JSON.stringify({ error: 'Restore failed' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  return new Response(null, {
-    status: 302,
-    headers: { Location: '/recursos?restored=true' },
+  return new Response(JSON.stringify({ data: { id }, message: 'Resource restored' }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
   });
 };

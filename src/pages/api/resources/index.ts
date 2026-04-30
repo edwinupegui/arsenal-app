@@ -78,7 +78,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (isOk(existingResult)) {
       return new Response(
         JSON.stringify({ error: 'A resource with this URL already exists' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 409, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -100,7 +100,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    return new Response(JSON.stringify({ ...result.value, tags: parseTags(result.value.tags) }), {
+    return new Response(JSON.stringify({ data: { ...result.value, tags: parseTags(result.value.tags) }, message: 'Resource created' }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });

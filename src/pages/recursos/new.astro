@@ -1,7 +1,8 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import ResourceForm from "../../components/ResourceForm.astro";
-import { listCategories } from "../../lib/resources";
+import { listCategories, resourceService } from "../../lib/resources";
+import { isOk } from "../../lib/result";
 
 const categoriesResult = listCategories();
 const categories = categoriesResult.ok ? categoriesResult.value : [];
@@ -25,26 +26,21 @@ if (Astro.request.method === "POST") {
                   .filter(Boolean)
             : [];
 
-        const response = await fetch(`${Astro.url.origin}/api/resources`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                title,
-                url,
-                description,
-                tags,
-                language,
-                type,
-                categoryId,
-            }),
+        const result = resourceService.createResource({
+            title,
+            url,
+            description,
+            tags,
+            language,
+            type,
+            categoryId,
         });
 
-        if (response.ok) {
+        if (isOk(result)) {
             return Astro.redirect("/recursos?created=true");
         } else {
-            const error = await response.json();
             return Astro.redirect(
-                `/recursos/new?error=${encodeURIComponent(error.error || "Error al crear")}`,
+                `/recursos/new?error=${encodeURIComponent(result.error.message)}`,
             );
         }
     } catch (e) {

@@ -5,23 +5,23 @@ import { isOk } from '../../../../lib/result';
 export const POST: APIRoute = async ({ params }) => {
   const idParam = params.id;
   if (!idParam || isNaN(parseInt(idParam))) {
-    return new Response(null, {
-      status: 302,
-      headers: { Location: '/recursos/trash?error=invalid-id' },
+    return new Response(JSON.stringify({ error: 'Invalid ID' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
   const id = parseInt(idParam);
 
   const result = resourceService.permanentDeleteResource(id);
   if (!isOk(result)) {
-    return new Response(null, {
-      status: 302,
-      headers: { Location: '/recursos/trash?error=delete-failed' },
+    return new Response(JSON.stringify({ error: 'Permanent delete failed' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  return new Response(null, {
-    status: 302,
-    headers: { Location: '/recursos/trash?deleted=true' },
+  return new Response(JSON.stringify({ data: { id }, message: 'Resource permanently deleted' }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
   });
 };

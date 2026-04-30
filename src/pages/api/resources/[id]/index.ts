@@ -61,41 +61,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
   }
 };
 
-export const POST: APIRoute = async ({ params, request, url }) => {
-  const idParam = params.id;
-  if (!idParam || isNaN(parseInt(idParam))) {
-    return new Response(JSON.stringify({ error: 'Invalid ID' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-  const id = parseInt(idParam);
-
-  // Parse custom method override via query param or hidden input
-  const method = url.searchParams.get('_method') || 'POST';
-
-  if (method.toUpperCase() === 'DELETE') {
-    const result = resourceService.softDeleteResource(id);
-    if (!isOk(result)) {
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/recursos?error=delete-failed' }
-      });
-    }
-
-    // Always redirect when called from HTML form
-    return new Response(null, {
-      status: 303,
-      headers: { Location: '/recursos?deleted=true' }
-    });
-  }
-
-  return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-    status: 405,
-  });
-};
-
-export const DELETE: APIRoute = async ({ params, request }) => {
+export const DELETE: APIRoute = async ({ params }) => {
   const idParam = params.id;
   if (!idParam || isNaN(parseInt(idParam))) {
     return new Response(JSON.stringify({ error: 'Invalid ID' }), {
@@ -113,17 +79,7 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     });
   }
 
-  // Si la petición viene de un formulario HTML (POST con _method=DELETE), redirigir
-  if (request.headers.get('accept')?.includes('text/html') || request.headers.get('content-type')?.includes('application/x-www-form-urlencoded')) {
-    return new Response(null, {
-      status: 303,
-      headers: {
-        'Location': '/recursos?deleted=true'
-      }
-    });
-  }
-
-  return new Response(JSON.stringify({ success: result.value }), {
+  return new Response(JSON.stringify({ data: { id }, message: 'Resource deleted' }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
