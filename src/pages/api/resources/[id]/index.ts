@@ -54,8 +54,20 @@ export const PUT: APIRoute = async ({ params, request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Validation failed' }), {
-      status: 400,
+    // Check if it's a Zod validation error
+    if (error instanceof Error && error.name === 'ZodError') {
+      return new Response(JSON.stringify({
+        error: 'Validation failed',
+        details: (error as unknown as { errors: unknown }).errors,
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    // Log unexpected errors and return generic 500
+    console.error(`Unexpected error updating resource ${id}:`, error);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }

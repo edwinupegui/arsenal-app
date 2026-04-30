@@ -14,8 +14,9 @@ export const POST: APIRoute = async ({ params }) => {
 
   const result = resourceService.permanentDeleteResource(id);
   if (!isOk(result)) {
-    return new Response(JSON.stringify({ error: 'Permanent delete failed' }), {
-      status: 400,
+    const status = result.error.type === 'NOT_FOUND' ? 404 : 400;
+    return new Response(JSON.stringify({ error: result.error.message }), {
+      status,
       headers: { 'Content-Type': 'application/json' },
     });
   }

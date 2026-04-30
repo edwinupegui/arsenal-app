@@ -1,23 +1,28 @@
-// Re-export from service layer for backward compatibility
-// The actual implementation lives in src/services/ResourceService.ts
-export {
-  resourceService,
-  ResourceService,
-} from '../services/ResourceService';
+import { resourceService, ResourceService } from '../services/ResourceService';
+
+// Re-export for backward compatibility
+export { resourceService, ResourceService };
 
 export type { ResourceFilters } from '../repositories';
-
-// Re-export schema types
 export type { Resource, NewResource, Category } from '../db/schema';
 
-// Parse tags from JSON (Drizzle already handles JSON mode)
-export function parseTags(tags: string[] | null): string[] {
-  return tags ?? [];
+// Parse tags from JSON or array (handles both Drizzle JSON mode and legacy strings)
+// Defensive parsing - accepts string[], null, or JSON string
+export function parseTags(tags: string[] | string | null | undefined): string[] {
+  if (!tags) return [];
+  if (Array.isArray(tags)) return tags;
+  // Legacy: tags stored as JSON string
+  if (typeof tags === 'string') {
+    try {
+      return JSON.parse(tags) as string[];
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
-// Convenience re-exports for direct usage
-import { resourceService } from '../services/ResourceService';
-
+// Convenience re-exports for direct usage (avoids importing from multiple places)
 export const listResources = resourceService.listResources.bind(resourceService);
 export const listDeletedResources = resourceService.listDeletedResources.bind(resourceService);
 export const getResourceById = resourceService.getResourceById.bind(resourceService);
@@ -30,4 +35,7 @@ export const permanentDeleteResource = resourceService.permanentDeleteResource.b
 export const searchResources = resourceService.searchResources.bind(resourceService);
 export const listCategories = resourceService.listCategories.bind(resourceService);
 export const getCategoryById = resourceService.getCategoryById.bind(resourceService);
-export const getAllTags = resourceService.getAllTags.bind(resourceService);
+export const listTags = resourceService.listTags.bind(resourceService);
+
+// Backward compatibility alias (deprecated - use listTags instead)
+export const getAllTags = listTags;

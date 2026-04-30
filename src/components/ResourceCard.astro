@@ -27,11 +27,10 @@ interface Props {
 
 const { resource, category, index = 0 } = Astro.props;
 
-// Parse tags if string
-const tagsArray =
-    typeof resource.tags === "string"
-        ? JSON.parse(resource.tags || "[]")
-        : resource.tags || [];
+// Parse tags - handles both Drizzle JSON arrays and legacy string format
+const tagsArray = Array.isArray(resource.tags)
+    ? resource.tags
+    : (typeof resource.tags === 'string' ? JSON.parse(resource.tags || '[]') : []);
 
 // Type-specific colors for visual distinction
 const typeColors = {

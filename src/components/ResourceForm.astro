@@ -1,6 +1,7 @@
 ---
 import type { Category, Resource } from '../db/schema';
 import { LANGUAGE_CONFIG, RESOURCE_TYPE_CONFIG, SUGGESTED_TAGS } from '../lib/constants';
+import { parseTags } from '../lib/resources';
 
 interface Props {
   action: 'create' | 'edit';
@@ -11,10 +12,8 @@ interface Props {
 
 const { action, initialData = {}, categories, errors = {} } = Astro.props;
 
-// Parse tags if string
-const tagsValue = initialData.tags
-  ? (typeof initialData.tags === 'string' ? JSON.parse(initialData.tags) : initialData.tags)
-  : [];
+// Parse tags using the centralized parseTags function (handles both JSON arrays and legacy strings)
+const tagsValue = parseTags(initialData.tags as string[] | string | null | undefined);
 
 // Parse metadata for editing
 const metadata = initialData.metadata || null;

@@ -21,37 +21,48 @@ export type FindAllOptions = {
 };
 
 export class ResourceRepository {
+  /**
+   * Build SQL conditions from filters (shared by findAll and countResources)
+   */
+  private buildConditions(filters?: ResourceFilters): ReturnType<typeof and>[] {
+    const conditions: ReturnType<typeof and>[] = [isNull(resources.deletedAt)];
+
+    // Text search: use LIKE for now (simpler, works reliably)
+    if (filters?.q && filters.q.trim()) {
+      const searchTerm = `%${filters.q}%`;
+      conditions.push(
+        or(
+          like(resources.title, searchTerm),
+          like(resources.description, searchTerm)
+        )!
+      );
+    }
+
+    // Tag filtering: resources must contain ALL specified tags (AND logic)
+    // Note: This assumes JSON array storage. For reliable tag filtering,
+    // consider a separate junction table.
+    if (filters?.tags && filters.tags.length > 0) {
+      for (const tag of filters.tags) {
+        conditions.push(like(resources.tags, `%"${tag}"%`));
+      }
+    }
+
+    if (filters?.categoryId) {
+      conditions.push(eq(resources.categoryId, filters.categoryId));
+    }
+    if (filters?.language) {
+      conditions.push(eq(resources.language, filters.language));
+    }
+    if (filters?.type) {
+      conditions.push(eq(resources.type, filters.type));
+    }
+
+    return conditions;
+  }
+
   findAll(filters?: ResourceFilters, options?: FindAllOptions): Result<Resource[], AppError> {
     try {
-      const conditions = [isNull(resources.deletedAt)];
-
-      // Text search: use LIKE for now (simpler, works reliably)
-      if (filters?.q && filters.q.trim()) {
-        const searchTerm = `%${filters.q}%`;
-        conditions.push(
-          or(
-            like(resources.title, searchTerm),
-            like(resources.description, searchTerm)
-          )!
-        );
-      }
-
-      // Tag filtering: resources must contain ALL specified tags (AND logic)
-      if (filters?.tags && filters.tags.length > 0) {
-        for (const tag of filters.tags) {
-          conditions.push(like(resources.tags, `%"${tag}"%`));
-        }
-      }
-
-      if (filters?.categoryId) {
-        conditions.push(eq(resources.categoryId, filters.categoryId));
-      }
-      if (filters?.language) {
-        conditions.push(eq(resources.language, filters.language));
-      }
-      if (filters?.type) {
-        conditions.push(eq(resources.type, filters.type));
-      }
+      const conditions = this.buildConditions(filters);
 
       // Build query with conditions
       let query = db
@@ -89,35 +100,7 @@ export class ResourceRepository {
 
   countResources(filters?: ResourceFilters): Result<number, AppError> {
     try {
-      const conditions = [isNull(resources.deletedAt)];
-
-      // Text search: use LIKE for now (simpler, works reliably)
-      if (filters?.q && filters.q.trim()) {
-        const searchTerm = `%${filters.q}%`;
-        conditions.push(
-          or(
-            like(resources.title, searchTerm),
-            like(resources.description, searchTerm)
-          )!
-        );
-      }
-
-      // Tag filtering: resources must contain ALL specified tags (AND logic)
-      if (filters?.tags && filters.tags.length > 0) {
-        for (const tag of filters.tags) {
-          conditions.push(like(resources.tags, `%"${tag}"%`));
-        }
-      }
-
-      if (filters?.categoryId) {
-        conditions.push(eq(resources.categoryId, filters.categoryId));
-      }
-      if (filters?.language) {
-        conditions.push(eq(resources.language, filters.language));
-      }
-      if (filters?.type) {
-        conditions.push(eq(resources.type, filters.type));
-      }
+      const conditions = this.buildConditions(filters);
 
       const result = db
         .select({ count: sql<number>`count(*)` })
@@ -129,33 +112,6 @@ export class ResourceRepository {
     } catch (e) {
       return err(databaseError(`Failed to count resources: ${e}`));
     }
-  }
-
-  private isFTSAvailable(): boolean {
-    try {
-      db.select().from(sql`resources_fts LIMIT 1`).all();
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  private buildFTSQuery(query: string): string {
-    // Escape special FTS5 characters
-    const escaped = query
-      .replace(/["*]/g, '')
-      .trim();
-
-    // Split into words and create OR query for partial matching
-    const words = escaped.split(/\s+/).filter(w => w.length > 0);
-    if (words.length === 0) {
-      return '""';
-    }
-
-    // Use OR between words for partial matching
-    // Add * for prefix matching on each word
-    const ftsTerms = words.map(w => `"${w}"*`);
-    return ftsTerms.join(' OR ');
   }
 
   findDeleted(): Result<Resource[], AppError> {
@@ -333,27 +289,16 @@ export class ResourceRepository {
 
   getAllTags(): Result<{tag: string; count: number}[], AppError> {
     try {
+      // Use SQLite JSON aggregation for performance - only fetches tag values, not full rows
       const result = db
-        .select({ tags: resources.tags })
-        .from(resources)
+        .select({ tag: sql<string>`value`, count: sql<number>`count(*)` })
+        .from(resources, sql`json_each(resources.tags)`)
         .where(isNull(resources.deletedAt))
-        .all();
+        .groupBy(sql`value`)
+        .orderBy(sql`count(*) DESC`)
+        .all() as { tag: string; count: number }[];
 
-      // Flatten and count tag occurrences
-      const tagCounts = new Map<string, number>();
-      for (const row of result) {
-        const tags: string[] = row.tags ?? [];
-        for (const tag of tags) {
-          tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
-        }
-      }
-
-      // Convert to sorted array (by count descending)
-      const sorted = Array.from(tagCounts.entries())
-        .map(([tag, count]) => ({ tag, count }))
-        .sort((a, b) => b.count - a.count);
-
-      return ok(sorted);
+      return ok(result);
     } catch (e) {
       return err(databaseError(`Failed to fetch tags: ${e}`));
     }

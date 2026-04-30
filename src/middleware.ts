@@ -33,13 +33,13 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
   }
 
   // Check if admin credentials are configured
-  // Use process.env directly for .env file access in SSR context
-  const adminUser = process.env.ADMIN_USER;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  // Use context.env for Astro SSR (process.env doesn't have .env vars in SSR)
+  const adminUser = env.ADMIN_USER;
+  const adminPassword = env.ADMIN_PASSWORD;
 
   // If no credentials configured, deny all mutations for security
   if (!adminUser || !adminPassword) {
-    console.error('[Auth] Admin credentials not configured. Set ADMIN_USER and ADMIN_PASSWORD in .env');
+    // Return generic 500 without leaking configuration details
     return new Response('Server configuration error', { status: 500 });
   }
 
