@@ -45,6 +45,7 @@ const categories = categoriesResult.ok ? categoriesResult.value : [];
             message="¿Estás seguro de que quieres crear este recurso?"
             confirmLabel="Crear"
             cancelLabel="Cancelar"
+            variant="info"
         />
 
         <ErrorModal id="error-modal" />
@@ -52,6 +53,8 @@ const categories = categoriesResult.ok ? categoriesResult.value : [];
 </Layout>
 
 <script>
+    import { authFetch } from "../../lib/auth-interceptor";
+
     const form = document.getElementById('resource-form') as HTMLFormElement;
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -81,20 +84,25 @@ const categories = categoriesResult.ok ? categoriesResult.value : [];
             }
         }
 
-        const response = await fetch('/api/resources', {
+        const result = await authFetch('/api/resources', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
             body: JSON.stringify(data),
+            authContext: 'Inicia sesión para crear el recurso',
         });
 
-        if (response.ok) {
-            window.location.href = '/recursos?created=true';
+        if (result.ok) {
+            const response = result.value;
+            if (response.ok) {
+                window.location.href = '/recursos?created=true';
+            } else {
+                const result_data = await response.json();
+                (window as any).showError(result_data.error || 'Error al crear');
+            }
         } else {
-            const result = await response.json();
-            (window as any).showError(result.error || 'Error al crear');
+            (window as any).showError(result.error.message || 'Error de autenticación');
         }
     });
 </script>

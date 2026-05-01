@@ -5,7 +5,13 @@ import { isOk, map } from '../../../lib/result';
 
 export const GET: APIRoute = async ({ url }) => {
   try {
-    const rawParams = Object.fromEntries(url.searchParams);
+    // Object.fromEntries collapses repeated params (e.g. ?tags=a&tags=b → {tags:'b'}).
+    // Read tags via getAll() so multi-select filtering works.
+    const rawParams: Record<string, unknown> = {
+      ...(Object.fromEntries(url.searchParams) as Record<string, string>),
+    };
+    const tagsAll = url.searchParams.getAll('tags').filter((t) => t.length > 0);
+    if (tagsAll.length > 0) rawParams.tags = tagsAll;
 
     // Parse both filter and pagination params
     const filterResult = filterSchema.safeParse(rawParams);
@@ -90,7 +96,7 @@ export const POST: APIRoute = async ({ request }) => {
       language: parsed.language,
       type: parsed.type,
       categoryId: parsed.categoryId,
-      metadata: parsed.metadata ?? undefined,
+      metadata: (parsed.metadata as Record<string, unknown> | null | undefined) ?? undefined,
     });
 
     if (!isOk(result)) {

@@ -44,12 +44,14 @@ export class ResourceRepository {
       );
     }
 
-    // Tag filtering: resources must contain ALL specified tags (AND logic)
-    // Note: This assumes JSON array storage. For reliable tag filtering,
-    // consider a separate junction table.
+    // Tag filtering: resources must contain ALL specified tags (AND logic).
+    // Uses json_each over the JSON tags array for an exact value match — robust
+    // to tags containing punctuation, ampersands, colons, etc.
     if (filters?.tags && filters.tags.length > 0) {
       for (const tag of filters.tags) {
-        conditions.push(like(resources.tags, `%"${tag}"%`));
+        conditions.push(
+          sql`EXISTS (SELECT 1 FROM json_each(resources.tags) WHERE value = ${tag})`
+        );
       }
     }
 
@@ -70,11 +72,13 @@ export class ResourceRepository {
     try {
       const conditions = this.buildConditions(filters);
 
-      // Build query with conditions
+      // Build query with conditions. $dynamic() lets us reassign through
+      // orderBy/limit/offset without losing the chained type.
       let query = this.db
         .select()
         .from(resources)
-        .where(and(...conditions));
+        .where(and(...conditions))
+        .$dynamic();
 
       // Apply sorting
       const sort = filters?.sort ?? 'alpha';
@@ -293,18 +297,22 @@ export class ResourceRepository {
     }
   }
 
-  getAllTags(): Result<{tag: string; count: number}[], AppError> {
+  getAllTags(): Result<{ tag: string; count: number }[], AppError> {
     try {
-      // Use SQLite JSON aggregation for performance - only fetches tag values, not full rows
-      const result = this.db
-        .select({ tag: sql<string>`value`, count: sql<number>`count(*)` })
-        .from(resources, sql`json_each(resources.tags)`)
-        .where(isNull(resources.deletedAt))
-        .groupBy(sql`value`)
-        .orderBy(sql`count(*) DESC`)
-        .all() as { tag: string; count: number }[];
+      // Drizzle's .from(table, sql`...`) does NOT emit a comma-join. We use raw
+      // SQL with json_each() to expand tag arrays and aggregate counts.
+      // json_valid() guards against rows where tags is null or malformed.
+      const rows = this.db.all(sql`
+        SELECT value AS tag, count(*) AS count
+        FROM resources, json_each(resources.tags)
+        WHERE resources.deleted_at IS NULL
+          AND resources.tags IS NOT NULL
+          AND json_valid(resources.tags)
+        GROUP BY value
+        ORDER BY count(*) DESC, value ASC
+      `) as { tag: string; count: number }[];
 
-      return ok(result);
+      return ok(rows);
     } catch (e) {
       return err(databaseError(`Failed to fetch tags: ${e}`));
     }
@@ -345,7 +353,8 @@ export class ResourceRepository {
     try {
       const conditions = this.buildConditions(filters);
 
-      // Build query with JOIN to get category data
+      // Build query with JOIN to get category data. $dynamic() unfreezes the
+      // chained type so orderBy/limit/offset can be applied conditionally.
       let query = this.db
         .select({
           resource: resources,
@@ -353,7 +362,8 @@ export class ResourceRepository {
         })
         .from(resources)
         .innerJoin(categories, eq(resources.categoryId, categories.id))
-        .where(and(...conditions));
+        .where(and(...conditions))
+        .$dynamic();
 
       // Apply sorting
       const sort = filters?.sort ?? 'alpha';

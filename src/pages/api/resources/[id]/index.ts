@@ -58,7 +58,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
     if (error instanceof Error && error.name === 'ZodError') {
       return new Response(JSON.stringify({
         error: 'Validation failed',
-        details: (error as unknown as { errors: unknown }).errors,
+        details: (error as unknown as { issues: unknown }).issues,
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },

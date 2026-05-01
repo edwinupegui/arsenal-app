@@ -18,12 +18,46 @@
 # Install dependencies
 npm install
 
+# Configure env (copy .env.example to .env and fill in)
+cp .env.example .env
+
 # Run dev server
 npm run dev
 
 # Seed database
 npm run db:seed
 ```
+
+## Environment
+
+Required variables in `.env`:
+
+| Var | Purpose |
+|-----|---------|
+| `ADMIN_USER` | Admin username |
+| `ADMIN_PASSWORD` | Admin password |
+| `SESSION_SECRET` | 32+ char random string used to sign session cookies. Generate with `openssl rand -hex 32` |
+| `DATABASE_URL` | (Optional) Path to SQLite file. Defaults to `./resources.db` |
+
+In production (Fly.io), set them as secrets:
+
+```bash
+fly secrets set ADMIN_USER=... ADMIN_PASSWORD=... SESSION_SECRET=...
+```
+
+## Authentication
+
+Session-based auth via HttpOnly cookies signed with HMAC-SHA256.
+
+| Endpoint | Method | Auth |
+|----------|--------|------|
+| `/api/auth/login` | POST | Public — sets session cookie |
+| `/api/auth/logout` | POST | Public |
+| `/api/auth/verify` | GET  | Reports current session state |
+| `/api/resources` GET | — | Public |
+| `/api/resources` POST/PUT/DELETE | — | Session required |
+| `/login` | — | Public login form |
+| `/recursos/new`, `/recursos/trash`, `/recursos/:id/{edit,delete,restore,permanent}` | — | Redirect to `/login` if no session |
 
 ## Scripts
 

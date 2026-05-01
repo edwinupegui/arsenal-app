@@ -1,36 +1,24 @@
 ---
-import { RESOURCE_TYPE_CONFIG } from '../lib/constants';
+import { RESOURCE_TYPE_CONFIG, TYPE_COLORS } from '../lib/constants';
+import type { ResourceType } from '../lib/constants';
 
 interface Props {
-  type: string;
+  type: ResourceType;
   size?: 'sm' | 'md';
 }
 
 const { type, size = 'sm' } = Astro.props;
-const config = RESOURCE_TYPE_CONFIG[type as keyof typeof RESOURCE_TYPE_CONFIG] ?? RESOURCE_TYPE_CONFIG.video;
+const config = RESOURCE_TYPE_CONFIG[type] ?? RESOURCE_TYPE_CONFIG.video;
+const colors = TYPE_COLORS[type] ?? TYPE_COLORS.video;
 
 const sizeClasses = {
   sm: 'px-2 py-0.5 text-xs',
   md: 'px-2.5 py-1 text-sm',
 };
-
-const typeColors = {
-  video:   { bg: '0.60 0.18 25',   text: '0.65 0.15 25'   },
-  article: { bg: '0.62 0.14 220',  text: '0.68 0.12 220'  },
-  tool:    { bg: '0.64 0.12 155',  text: '0.70 0.10 155'  },
-  repo:    { bg: '0.82 0.06 70',   text: '0.88 0.05 70'   },
-};
-
-const colors = typeColors[type as keyof typeof typeColors] || typeColors.video;
 ---
 
 <span
-    class={`flex items-center gap-1.5 ${sizeClasses[size]} rounded border`}
-    style={`
-        background-color: oklch(${colors.bg} / 0.12);
-        border-color: oklch(${colors.bg} / 0.30);
-        color: oklch(${colors.text});
-    `}
+  class={`flex items-center gap-1.5 ${sizeClasses[size]} rounded border ${colors.bg} ${colors.text} ${colors.border}`}
 >
   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={config.icon} />

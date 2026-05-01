@@ -75,9 +75,10 @@ const resourceData = {
         <ConfirmDialog
             id="delete-confirm"
             title="Eliminar recurso"
-            message="¿Estás seguro de que quieres eliminar este recurso? Podrás restaurarlo desde la papelera."
+            message="¿Estás seguro de que quieres eliminar este recurso? El recurso se moverá a la papelera."
             confirmLabel="Eliminar"
             cancelLabel="Cancelar"
+            variant="warning"
         />
 
         <ErrorModal id="delete-error-modal" />
@@ -85,22 +86,29 @@ const resourceData = {
 </Layout>
 
 <script>
+    import { authFetch } from "../../../lib/auth-interceptor";
+
     const form = document.getElementById('delete-form') as HTMLFormElement;
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const confirmed = await (window as any).showConfirmDialog('delete-confirm');
         if (!confirmed) return;
 
-        const response = await fetch(form.action, {
+        const result = await authFetch(form.action, {
             method: 'POST',
-            credentials: 'include',
+            authContext: 'Inicia sesión para mover el recurso a la papelera',
         });
 
-        if (response.ok) {
-            window.location.href = '/recursos?deleted=true';
+        if (result.ok) {
+            const response = result.value;
+            if (response.ok) {
+                window.location.href = '/recursos?deleted=true';
+            } else {
+                const data = await response.json();
+                (window as any).showError(data.error || 'Error al eliminar');
+            }
         } else {
-            const data = await response.json();
-            (window as any).showError(data.error || 'Error al eliminar');
+            (window as any).showError(result.error.message || 'Error de autenticación');
         }
     });
 </script>

@@ -99,5 +99,57 @@ export const SUGGESTED_TAGS = [
 
 export type SuggestedTag = typeof SUGGESTED_TAGS[number];
 
-// Languages enum for validation
+// Language enum for validation
 export const LANGUAGES = ['ES', 'EN'] as const
+
+// Resource type colors for UI styling (Tailwind classes for dark theme)
+export const TYPE_COLORS: Record<ResourceType, { bg: string; text: string; border: string; label: string }> = {
+  video: {
+    bg: 'bg-red-400/10',
+    text: 'text-red-400',
+    border: 'border-red-400/30',
+    label: 'Video',
+  },
+  article: {
+    bg: 'bg-blue-400/10',
+    text: 'text-blue-400',
+    border: 'border-blue-400/30',
+    label: 'Article',
+  },
+  tool: {
+    bg: 'bg-teal-400/10',
+    text: 'text-teal-400',
+    border: 'border-teal-400/30',
+    label: 'Tool',
+  },
+  repo: {
+    bg: 'bg-violet-400/10',
+    text: 'text-violet-400',
+    border: 'border-violet-400/30',
+    label: 'Repo',
+  },
+  course: {
+    bg: 'bg-amber-400/10',
+    text: 'text-amber-400',
+    border: 'border-amber-400/30',
+    label: 'Curso',
+  },
+  podcast: {
+    bg: 'bg-pink-400/10',
+    text: 'text-pink-400',
+    border: 'border-pink-400/30',
+    label: 'Podcast',
+  },
+  newsletter: {
+    bg: 'bg-cyan-400/10',
+    text: 'text-cyan-400',
+    border: 'border-cyan-400/30',
+    label: 'Newsletter',
+  },
+  community: {
+    bg: 'bg-emerald-400/10',
+    text: 'text-emerald-400',
+    border: 'border-emerald-400/30',
+    label: 'Comunidad',
+  },
+};

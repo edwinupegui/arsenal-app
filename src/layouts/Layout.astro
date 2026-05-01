@@ -1,5 +1,6 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import AuthModal from '../components/AuthModal.astro';
 
 interface Props {
     title?: string;
@@ -16,6 +17,8 @@ const {
     ogType = "website",
     fullWidth = false,
 } = Astro.props;
+
+const session = Astro.locals.session ?? null;
 ---
 
 <!doctype html>
@@ -87,29 +90,63 @@ const {
                         </svg>
                         Recursos
                     </a>
-                    <a
-                        href="/recursos/trash"
-                        class="px-4 py-2 text-sm text-text-muted hover:text-text rounded-lg hover:bg-surface-hover transition-all duration-150 flex items-center gap-2 group"
-                    >
-                        <svg class="w-4 h-4 transition-transform duration-150 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                        Papelera
-                    </a>
+
+                    {session && (
+                        <a
+                            href="/recursos/trash"
+                            class="px-4 py-2 text-sm text-text-muted hover:text-text rounded-lg hover:bg-surface-hover transition-all duration-150 flex items-center gap-2 group"
+                        >
+                            <svg class="w-4 h-4 transition-transform duration-150 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Papelera
+                        </a>
+                    )}
 
                     <!-- Divider -->
                     <div class="w-px h-6 bg-border mx-2"></div>
 
-                    <!-- New Resource CTA — Sand accent button with shimmer -->
-                    <a
-                        href="/recursos/new"
-                        class="btn-shimmer px-4 py-2 bg-accent hover:bg-accent-hover text-bg text-sm font-medium rounded-lg transition-colors duration-150 active:scale-[0.97] flex items-center gap-2"
-                    >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Nuevo
-                    </a>
+                    {session ? (
+                        <>
+                            <!-- New Resource CTA -->
+                            <a
+                                href="/recursos/new"
+                                class="btn-shimmer px-4 py-2 bg-accent hover:bg-accent-hover text-bg text-sm font-medium rounded-lg transition-colors duration-150 active:scale-[0.97] flex items-center gap-2"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Nuevo
+                            </a>
+
+                            <!-- User chip + logout -->
+                            <div class="flex items-center gap-2 ml-2 pl-2 border-l border-border">
+                                <span class="text-xs text-text-muted hidden md:inline">
+                                    {session.username}
+                                </span>
+                                <button
+                                    type="button"
+                                    id="logout-btn"
+                                    title="Cerrar sesión"
+                                    class="btn-press p-2 text-text-muted hover:text-danger rounded-lg hover:bg-surface-hover transition-colors"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <a
+                            href={`/login?redirect=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`}
+                            class="btn-press px-4 py-2 bg-primary hover:bg-primary/80 text-white text-sm font-medium rounded-lg transition-colors duration-150 flex items-center gap-2"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            Iniciar sesión
+                        </a>
+                    )}
                 </div>
             </nav>
         </header>
@@ -136,6 +173,27 @@ const {
                 </div>
             </div>
         </footer>
+
+        <!-- Auth Modal for API authentication -->
+        <AuthModal id="auth-modal" />
+
+        <script>
+            // Ensure auth-interceptor module is loaded so authFetch + modal flow
+            // are wired up on pages that don't import it directly.
+            import "../lib/auth-interceptor";
+
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn?.addEventListener('click', async () => {
+                try {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                    });
+                } finally {
+                    window.location.href = '/recursos';
+                }
+            });
+        </script>
     </body>
 </html>
 

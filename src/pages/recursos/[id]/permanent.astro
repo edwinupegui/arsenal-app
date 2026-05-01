@@ -85,22 +85,29 @@ const resourceData = {
 </Layout>
 
 <script>
+    import { authFetch } from "../../../lib/auth-interceptor";
+
     const form = document.getElementById('permanent-form') as HTMLFormElement;
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const confirmed = await (window as any).showConfirmDialog('permanent-confirm');
         if (!confirmed) return;
 
-        const response = await fetch(form.action, {
+        const result = await authFetch(form.action, {
             method: 'POST',
-            credentials: 'include',
+            authContext: 'Inicia sesión para eliminar permanentemente',
         });
 
-        if (response.ok) {
-            window.location.href = '/recursos/trash?deleted=true';
+        if (result.ok) {
+            const response = result.value;
+            if (response.ok) {
+                window.location.href = '/recursos/trash?deleted=true';
+            } else {
+                const data = await response.json();
+                (window as any).showError(data.error || 'Error al eliminar');
+            }
         } else {
-            const data = await response.json();
-            (window as any).showError(data.error || 'Error al eliminar');
+            (window as any).showError(result.error.message || 'Error de autenticación');
         }
     });
 </script>

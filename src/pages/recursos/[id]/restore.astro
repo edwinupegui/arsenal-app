@@ -78,6 +78,7 @@ const resourceData = {
             message="¿Estás seguro de que quieres restaurar este recurso?"
             confirmLabel="Restaurar"
             cancelLabel="Cancelar"
+            variant="success"
         />
 
         <ErrorModal id="restore-error-modal" />
@@ -85,22 +86,29 @@ const resourceData = {
 </Layout>
 
 <script>
+    import { authFetch } from "../../../lib/auth-interceptor";
+
     const form = document.getElementById('restore-form') as HTMLFormElement;
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const confirmed = await (window as any).showConfirmDialog('restore-confirm');
         if (!confirmed) return;
 
-        const response = await fetch(form.action, {
+        const result = await authFetch(form.action, {
             method: 'POST',
-            credentials: 'include',
+            authContext: 'Inicia sesión para restaurar el recurso',
         });
 
-        if (response.ok) {
-            window.location.href = '/recursos/trash?restored=true';
+        if (result.ok) {
+            const response = result.value;
+            if (response.ok) {
+                window.location.href = '/recursos/trash?restored=true';
+            } else {
+                const data = await response.json();
+                (window as any).showError(data.error || 'Error al restaurar');
+            }
         } else {
-            const data = await response.json();
-            (window as any).showError(data.error || 'Error al restaurar');
+            (window as any).showError(result.error.message || 'Error de autenticación');
         }
     });
 </script>

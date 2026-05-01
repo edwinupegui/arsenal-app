@@ -67,12 +67,16 @@ const resourceData = {
             />
         </div>
 
+        <input type="hidden" id="resource-id-data" value={resourceId} />
+
+
         <ConfirmDialog
             id="edit-confirm"
             title="Guardar cambios"
             message="¿Estás seguro de que quieres guardar los cambios?"
             confirmLabel="Guardar"
             cancelLabel="Cancelar"
+            variant="info"
         />
 
         <ErrorModal id="edit-error-modal" />
@@ -80,6 +84,8 @@ const resourceData = {
 </Layout>
 
 <script>
+    import { authFetch } from "../../../lib/auth-interceptor";
+
     const form = document.getElementById('resource-form') as HTMLFormElement;
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -109,20 +115,32 @@ const resourceData = {
             }
         }
 
-        const response = await fetch(`/api/resources/${form.location.pathname.split('/')[3]}`, {
+        const idEl = document.getElementById('resource-id-data') as HTMLInputElement | null;
+        const resourceId = idEl?.value;
+        if (!resourceId) {
+            (window as any).showError('No se pudo determinar el id del recurso');
+            return;
+        }
+
+        const result = await authFetch(`/api/resources/${resourceId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
             body: JSON.stringify(data),
+            authContext: 'Inicia sesión para guardar los cambios',
         });
 
-        if (response.ok) {
-            window.location.href = '/recursos?updated=true';
+        if (result.ok) {
+            const response = result.value;
+            if (response.ok) {
+                window.location.href = '/recursos?updated=true';
+            } else {
+                const result_data = await response.json();
+                (window as any).showError(result_data.error || 'Error al guardar');
+            }
         } else {
-            const result = await response.json();
-            (window as any).showError(result.error || 'Error al guardar');
+            (window as any).showError(result.error.message || 'Error de autenticación');
         }
     });
 </script>

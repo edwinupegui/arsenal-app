@@ -1,0 +1,151 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+// If already authenticated, jump straight to the requested page.
+if (Astro.locals.session) {
+  const redirect = Astro.url.searchParams.get("redirect") || "/recursos";
+  return Astro.redirect(redirect);
+}
+
+const redirectParam = Astro.url.searchParams.get("redirect") || "/recursos";
+---
+
+<Layout title="Iniciar sesión — Arsenal" description="Acceso al panel de administración">
+    <div class="max-w-md mx-auto mt-12">
+        <div class="bg-surface border border-border rounded-xl p-8">
+            <div class="flex items-start gap-3 mb-6">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-text">Iniciar sesión</h1>
+                    <p class="text-text-muted text-sm mt-1">
+                        Acceso al panel de administración de Arsenal
+                    </p>
+                </div>
+            </div>
+
+            <form id="login-form" class="flex flex-col gap-4" data-redirect={redirectParam}>
+                <div>
+                    <label for="username" class="block text-sm font-medium text-text mb-1.5">
+                        Usuario
+                    </label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        autocomplete="username"
+                        required
+                        autofocus
+                        class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text text-sm placeholder-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    />
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-text mb-1.5">
+                        Contraseña
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                        class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text text-sm placeholder-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    />
+                </div>
+
+                <p id="login-error" class="text-danger text-sm hidden"></p>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <a
+                        href="/recursos"
+                        class="btn-press px-4 py-2 bg-surface-hover hover:bg-border border border-border text-text text-sm font-medium rounded-lg transition-colors"
+                    >
+                        Cancelar
+                    </a>
+                    <button
+                        type="submit"
+                        id="login-submit"
+                        class="btn-press px-4 py-2 bg-primary hover:bg-primary/80 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                        Iniciar sesión
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    const form = document.getElementById('login-form') as HTMLFormElement | null;
+    const errorEl = document.getElementById('login-error');
+    const submitBtn = document.getElementById('login-submit') as HTMLButtonElement | null;
+
+    function showError(msg: string) {
+        if (errorEl) {
+            errorEl.textContent = msg;
+            errorEl.classList.remove('hidden');
+        }
+    }
+
+    function clearError() {
+        if (errorEl) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+        }
+    }
+
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError();
+        if (!submitBtn) return;
+
+        const data = new FormData(form);
+        const username = String(data.get('username') ?? '').trim();
+        const password = String(data.get('password') ?? '');
+
+        if (!username || !password) {
+            showError('Usuario y contraseña son obligatorios');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verificando...';
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+                credentials: 'same-origin',
+            });
+
+            if (res.status === 401) {
+                showError('Usuario o contraseña inválidos');
+                const passwordInput = document.getElementById('password') as HTMLInputElement | null;
+                if (passwordInput) {
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+                return;
+            }
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                showError(data.error || 'Error del servidor. Intenta de nuevo.');
+                return;
+            }
+
+            const redirect = form.dataset.redirect || '/recursos';
+            window.location.href = redirect;
+        } catch (error) {
+            showError(error instanceof Error ? error.message : 'Error de red');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Iniciar sesión';
+        }
+    });
+</script>

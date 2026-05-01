@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 import CategoryBadge from "../../components/CategoryBadge.astro";
 import ConfirmDialog from "../../components/ConfirmDialog.astro";
+import ErrorModal from "../../components/ErrorModal.astro";
 import {
     listDeletedResources,
     listCategories,
@@ -144,31 +145,36 @@ const resourcesWithCategory: Array<{
 
                                 <div class="flex items-center gap-2 shrink-0">
                                     {/* Restore button */}
-                                    <form
-                                        method="POST"
-                                        action={`/recursos/${resource.id}/restore`}
+                                    <button
+                                        type="button"
+                                        class="btn-press px-3 py-1.5 bg-success-bg hover:bg-success/20 text-success text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 border border-success/30"
+                                        title="Restaurar recurso"
+                                        onclick={`openRestoreDialog(${resource.id})`}
                                     >
-                                        <button
-                                            type="submit"
-                                            class="btn-press px-3 py-1.5 bg-success-bg hover:bg-success/20 text-success text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 border border-success/30"
-                                            title="Restaurar recurso"
+                                        <svg
+                                            class="w-3.5 h-3.5"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
                                         >
-                                            <svg
-                                                class="w-3.5 h-3.5"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                                />
-                                            </svg>
-                                            Restaurar
-                                        </button>
-                                    </form>
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                            />
+                                        </svg>
+                                        Restaurar
+                                    </button>
+
+                                    <ConfirmDialog
+                                        id={`restore-${resource.id}`}
+                                        title="Restaurar recurso"
+                                        message="¿Querés restaurar este recurso?"
+                                        confirmLabel="Restaurar"
+                                        cancelLabel="Cancelar"
+                                        variant="success"
+                                    />
 
                                     {/* Permanent delete button */}
                                     <button
@@ -216,17 +222,48 @@ const resourcesWithCategory: Array<{
             )
         }
     </div>
+
+    <ErrorModal id="trash-error-modal" />
 </Layout>
 
 <script>
+    import { authFetch } from "../../lib/auth-interceptor";
+
     (window as any).openPermanentDeleteDialog = async (id: number) => {
         const confirmed = await (window as any).showConfirmDialog(`permanent-delete-${id}`);
-        if (confirmed) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/recursos/${id}/permanent`;
-            document.body.appendChild(form);
-            form.submit();
+        if (!confirmed) return;
+
+        const result = await authFetch(`/api/resources/${id}/permanent`, {
+            method: 'POST',
+            authContext: 'Inicia sesión para eliminar permanentemente',
+        });
+
+        if (result.ok && result.value.ok) {
+            window.location.reload();
+        } else {
+            const msg = result.ok
+                ? (await result.value.json().catch(() => ({}))).error
+                : result.error.message;
+            (window as any).showError(msg || 'Error al eliminar');
+        }
+    };
+
+    (window as any).openRestoreDialog = async (id: number) => {
+        const confirmed = await (window as any).showConfirmDialog(`restore-${id}`);
+        if (!confirmed) return;
+
+        const result = await authFetch(`/api/resources/${id}/restore`, {
+            method: 'POST',
+            authContext: 'Inicia sesión para restaurar el recurso',
+        });
+
+        if (result.ok && result.value.ok) {
+            window.location.reload();
+        } else {
+            const msg = result.ok
+                ? (await result.value.json().catch(() => ({}))).error
+                : result.error.message;
+            (window as any).showError(msg || 'Error al restaurar');
         }
     };
 </script>

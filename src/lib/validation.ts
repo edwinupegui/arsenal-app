@@ -46,7 +46,7 @@ export const createResourceSchema = z.object({
   if (schema) {
     const result = schema.safeParse(data.metadata)
     if (!result.success) {
-      for (const error of result.error.errors) {
+      for (const error of result.error.issues) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: error.message,
@@ -97,7 +97,7 @@ export const updateResourceSchema = z.object({
   if (schema) {
     const result = schema.safeParse(data.metadata)
     if (!result.success) {
-      for (const error of result.error.errors) {
+      for (const error of result.error.issues) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: error.message,
@@ -123,10 +123,15 @@ export const filterSchema = z.object({
   language: languageEnum.optional(),
   type: typeEnum.optional(),
   sort: sortEnum.optional().default('alpha'),
-  tags: z.string().optional().transform(val => {
-    if (!val) return []
-    return val.split(',').map(t => t.trim()).filter(t => t.length > 0)
-  }),
+  // Accepts: string[] (multiple ?tags=a&tags=b), comma-separated string, or empty.
+  tags: z
+    .union([z.array(z.string()), z.string()])
+    .optional()
+    .transform((val) => {
+      if (!val) return []
+      const arr = Array.isArray(val) ? val : val.split(',')
+      return arr.map((t) => t.trim()).filter((t) => t.length > 0)
+    }),
 })
 
 export type CreateResourceInput = z.infer<typeof createResourceSchema>

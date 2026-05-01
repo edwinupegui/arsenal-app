@@ -1,0 +1,243 @@
+---
+interface Props {
+  id?: string;
+}
+
+const { id = 'auth-modal' } = Astro.props;
+---
+
+<dialog
+  id={id}
+  data-auth-modal="true"
+  class="bg-surface border border-border rounded-xl p-6 w-full max-w-md animate-scale-in fixed inset-0 m-auto"
+>
+  <div class="flex flex-col gap-4">
+    <div class="flex items-start gap-3">
+      <div
+        class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0"
+      >
+        <svg
+          class="w-5 h-5 text-primary"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+          ></path>
+        </svg>
+      </div>
+      <div>
+        <h3 class="font-semibold text-text text-lg">Iniciar sesión</h3>
+        <p id={`${id}-context`} class="text-text-muted text-sm mt-1">
+          Ingresa tus credenciales para continuar
+        </p>
+      </div>
+    </div>
+
+    <form id={`${id}-form`} class="flex flex-col gap-3">
+      <div>
+        <label for={`${id}-username`} class="block text-sm font-medium text-text mb-1.5">
+          Usuario
+        </label>
+        <input
+          type="text"
+          id={`${id}-username`}
+          name="username"
+          autocomplete="username"
+          required
+          class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text text-sm placeholder-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+          placeholder="usuario"
+        />
+      </div>
+
+      <div>
+        <label for={`${id}-password`} class="block text-sm font-medium text-text mb-1.5">
+          Contraseña
+        </label>
+        <input
+          type="password"
+          id={`${id}-password`}
+          name="password"
+          autocomplete="current-password"
+          required
+          class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text text-sm placeholder-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+          placeholder="contraseña"
+        />
+      </div>
+
+      <p id={`${id}-error`} class="text-danger text-sm hidden"></p>
+    </form>
+
+    <div class="flex gap-3 justify-end mt-2">
+      <button
+        type="button"
+        onclick={`window.closeAuthModal('${id}')`}
+        class="btn-press px-4 py-2 bg-surface-hover hover:bg-border border border-border text-text text-sm font-medium rounded-lg transition-colors"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        id={`${id}-submit`}
+        class="btn-press px-4 py-2 bg-primary hover:bg-primary/80 text-white text-sm font-medium rounded-lg transition-colors"
+      >
+        Iniciar sesión
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  dialog {
+    position: fixed;
+    inset: 0;
+    width: fit-content;
+    height: fit-content;
+    margin: auto;
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
+
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+</style>
+
+<script define:vars={{ id }}>
+  const dialog = document.getElementById(id);
+  const form = document.getElementById(`${id}-form`);
+  const submitBtn = document.getElementById(`${id}-submit`);
+  const errorMsg = document.getElementById(`${id}-error`);
+
+  function showError(msg) {
+    if (errorMsg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.remove('hidden');
+    }
+  }
+
+  function clearError() {
+    if (errorMsg) {
+      errorMsg.classList.add('hidden');
+      errorMsg.textContent = '';
+    }
+  }
+
+  async function attemptLogin() {
+    const usernameInput = document.getElementById(`${id}-username`);
+    const passwordInput = document.getElementById(`${id}-password`);
+
+    if (!usernameInput || !passwordInput) return;
+
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+      showError('Usuario y contraseña son obligatorios');
+      return;
+    }
+
+    clearError();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Verificando...';
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (response.status === 401) {
+        showError('Usuario o contraseña inválidos');
+        passwordInput.value = '';
+        passwordInput.focus();
+        return;
+      }
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        showError(data.error || 'Error del servidor. Intenta de nuevo.');
+        return;
+      }
+
+      window.dispatchEvent(new CustomEvent('arsenal:auth-success', {
+        detail: { username }
+      }));
+
+      dialog.close('success');
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Error de red');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Iniciar sesión';
+    }
+  }
+
+  if (dialog && submitBtn && form) {
+    submitBtn.addEventListener('click', attemptLogin);
+
+    // Submit on Enter inside form
+    form.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        attemptLogin();
+      }
+    });
+
+    dialog.addEventListener('close', () => {
+      if (form) form.reset();
+      clearError();
+      if (dialog.returnValue !== 'success') {
+        window.dispatchEvent(new CustomEvent('arsenal:auth-cancelled'));
+      }
+    });
+  }
+</script>
+
+<script>
+  function focusFirstField(modal: HTMLDialogElement) {
+    const usernameInput = modal.querySelector('input[name="username"]') as HTMLInputElement | null;
+    requestAnimationFrame(() => usernameInput?.focus());
+  }
+
+  // Make dialog functions globally available
+  (window as any).showAuthModal = (id: string) => {
+    const dialog = document.getElementById(id) as HTMLDialogElement;
+    if (dialog) {
+      dialog.showModal();
+      focusFirstField(dialog);
+    }
+  };
+
+  (window as any).closeAuthModal = (id: string) => {
+    const dialog = document.getElementById(id) as HTMLDialogElement;
+    if (dialog) {
+      dialog.close('cancelled');
+    }
+  };
+
+  const DEFAULT_CONTEXT = 'Ingresa tus credenciales para continuar';
+
+  function setModalContext(modal: HTMLDialogElement, context?: string) {
+    const ctx = modal.querySelector<HTMLElement>('[id$="-context"]');
+    if (ctx) ctx.textContent = context && context.trim() ? context : DEFAULT_CONTEXT;
+  }
+
+  // Listen for open-auth-modal event
+  window.addEventListener('arsenal:open-auth-modal', (e: Event) => {
+    const modal = document.querySelector('[data-auth-modal="true"]') as HTMLDialogElement;
+    if (!modal) return;
+    const detail = (e as CustomEvent<{ context?: string }>).detail;
+    setModalContext(modal, detail?.context);
+    modal.showModal();
+    focusFirstField(modal);
+  });
+</script>

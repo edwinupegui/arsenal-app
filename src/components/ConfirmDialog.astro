@@ -1,19 +1,60 @@
 ---
+type Variant = "danger" | "warning" | "info" | "success";
+
 interface Props {
     id: string;
     title: string;
     message: string;
     confirmLabel?: string;
     cancelLabel?: string;
+    variant?: Variant;
 }
 
 const {
     id,
     title,
     message,
-    confirmLabel = "Eliminar",
+    confirmLabel = "Confirmar",
     cancelLabel = "Cancelar",
+    variant = "danger",
 } = Astro.props;
+
+const VARIANT_STYLES: Record<
+    Variant,
+    {
+        iconBg: string;
+        iconText: string;
+        confirmBg: string;
+        icon: string;
+    }
+> = {
+    danger: {
+        iconBg: "bg-danger-bg",
+        iconText: "text-danger",
+        confirmBg: "bg-danger hover:bg-danger/80",
+        icon: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
+    },
+    warning: {
+        iconBg: "bg-amber-500/10",
+        iconText: "text-amber-400",
+        confirmBg: "bg-amber-500 hover:bg-amber-500/80",
+        icon: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
+    },
+    info: {
+        iconBg: "bg-primary/10",
+        iconText: "text-primary",
+        confirmBg: "bg-primary hover:bg-primary/80",
+        icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+    },
+    success: {
+        iconBg: "bg-success-bg",
+        iconText: "text-success",
+        confirmBg: "bg-success hover:bg-success/80",
+        icon: "M5 13l4 4L19 7",
+    },
+};
+
+const style = VARIANT_STYLES[variant];
 ---
 
 <dialog
@@ -22,11 +63,9 @@ const {
 >
     <div class="flex flex-col gap-4">
         <div class="flex items-start gap-3">
-            <div
-                class="w-10 h-10 rounded-full bg-danger-bg flex items-center justify-center shrink-0"
-            >
+            <div class={`w-10 h-10 rounded-full ${style.iconBg} flex items-center justify-center shrink-0`}>
                 <svg
-                    class="w-5 h-5 text-danger"
+                    class={`w-5 h-5 ${style.iconText}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -35,7 +74,7 @@ const {
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        d={style.icon}
                     ></path>
                 </svg>
             </div>
@@ -56,7 +95,7 @@ const {
             <button
                 type="button"
                 id={`${id}-confirm`}
-                class="btn-press px-4 py-2 bg-danger hover:bg-danger/80 text-white text-sm font-medium rounded-lg transition-colors"
+                class={`btn-press px-4 py-2 ${style.confirmBg} text-white text-sm font-medium rounded-lg transition-colors`}
             >
                 {confirmLabel}
             </button>
